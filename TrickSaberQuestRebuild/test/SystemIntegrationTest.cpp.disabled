@@ -1,0 +1,165 @@
+#include <gtest/gtest.h>
+#include <memory>
+#include <vector>
+
+// Mock system components
+class MockSaberManager {
+public:
+    bool initialized = false;
+    bool saberActive = false;
+    
+    void Initialize() { initialized = true; }
+    void SetSaberActive(bool active) { saberActive = active; }
+    bool IsSaberActive() const { return saberActive; }
+};
+
+class MockInputSystem {
+public:
+    float triggerValue = 0.0f;
+    float thumbstickX = 0.0f;
+    bool gripPressed = false;
+    
+    void SetTrigger(float value) { triggerValue = value; }
+    void SetThumbstick(float x) { thumbstickX = x; }
+    void SetGrip(bool pressed) { gripPressed = pressed; }
+};
+
+class MockTrickSystem {
+public:
+    bool throwActive = false;
+    bool spinActive = false;
+    
+    void ProcessInput(const MockInputSystem& input) {
+        throwActive = input.triggerValue > 0.5f;
+        spinActive = abs(input.thumbstickX) > 0.3f;
+    }
+    
+    bool IsThrowActive() const { return throwActive; }
+    bool IsSpinActive() const { return spinActive; }
+};
+
+class SystemIntegrationTest : public ::testing::Test {
+protected:
+    std::unique_ptr<MockSaberManager> saberManager;
+    std::unique_ptr<MockInputSystem> inputSystem;
+    std::unique_ptr<MockTrickSystem> trickSystem;
+    
+    void SetUp() override {
+        saberManager = std::make_unique<MockSaberManager>();
+        inputSystem = std::make_unique<MockInputSystem>();
+        trickSystem = std::make_unique<MockTrickSystem>();
+        
+        // Initialize system
+        saberManager->Initialize();
+        saberManager->SetSaberActive(true);
+    }
+};
+
+TEST_F(SystemIntegrationTest, SystemInitialization) {
+    // Verify all components initialize correctly
+    EXPECT_TRUE(saberManager->initialized);
+    EXPECT_TRUE(saberManager->IsSaberActive());
+    EXPECT_FALSE(trickSystem->IsThrowActive());
+    EXPECT_FALSE(trickSystem->IsSpinActive());
+}
+
+TEST_F(SystemIntegrationTest, InputToTrickFlow) {
+    // Test input → trick activation flow
+    
+    // Trigger input should activate throw
+    inputSystem->SetTrigger(0.8f);
+    trickSystem->ProcessInput(*inputSystem);
+    EXPECT_TRUE(trickSystem->IsThrowActive());
+    
+    // Thumbstick input should activate spin
+    inputSystem->SetThumbstick(0.6f);
+    trickSystem->ProcessInput(*inputSystem);
+    EXPECT_TRUE(trickSystem->IsSpinActive());
+    
+    // Clear inputs should deactivate tricks
+    inputSystem->SetTrigger(0.0f);
+    inputSystem->SetThumbstick(0.0f);
+    trickSystem->ProcessInput(*inputSystem);
+    EXPECT_FALSE(trickSystem->IsThrowActive());
+    EXPECT_FALSE(trickSystem->IsSpinActive());
+}
+
+TEST_F(SystemIntegrationTest, MultipleInputSources) {
+    // Test multiple input sources working together
+    inputSystem->SetTrigger(0.7f);
+    inputSystem->SetThumbstick(0.5f);
+    inputSystem->SetGrip(true);
+    
+    trickSystem->ProcessInput(*inputSystem);
+    
+    EXPECT_TRUE(trickSystem->IsThrowActive());
+    EXPECT_TRUE(trickSystem->IsSpinActive());
+}
+
+TEST_F(SystemIntegrationTest, SystemStateConsistency) {
+    // Test system maintains consistent state
+    std::vector<bool> throwStates;
+    std::vector<bool> spinStates;
+    
+    // Simulate input sequence
+    float triggerValues[] = {0.0f, 0.3f, 0.6f, 0.8f, 0.4f, 0.1f};
+    float thumbstickValues[] = {0.0f, 0.2f, 0.4f, 0.7f, 0.3f, 0.0f};
+    
+    for (int i = 0; i < 6; i++) {
+        inputSystem->SetTrigger(triggerValues[i]);
+        inputSystem->SetThumbstick(thumbstickValues[i]);
+        trickSystem->ProcessInput(*inputSystem);
+        
+        throwStates.push_back(trickSystem->IsThrowActive());
+        spinStates.push_back(trickSystem->IsSpinActive());
+    }
+    
+    // Verify expected state transitions
+    EXPECT_FALSE(throwStates[0]); // 0.0 trigger
+    EXPECT_FALSE(throwStates[1]); // 0.3 trigger (below threshold)
+    EXPECT_TRUE(throwStates[2]);  // 0.6 trigger (above threshold)
+    EXPECT_TRUE(throwStates[3]);  // 0.8 trigger
+    EXPECT_FALSE(throwStates[4]); // 0.4 trigger (below threshold)
+    EXPECT_FALSE(throwStates[5]); // 0.1 trigger
+    
+    EXPECT_FALSE(spinStates[0]); // 0.0 thumbstick
+    EXPECT_FALSE(spinStates[1]); // 0.2 thumbstick (below threshold)
+    EXPECT_TRUE(spinStates[2]);  // 0.4 thumbstick (above threshold)
+    EXPECT_TRUE(spinStates[3]);  // 0.7 thumbstick
+    EXPECT_FALSE(spinStates[4]); // 0.3 thumbstick (at threshold)
+    EXPECT_FALSE(spinStates[5]); // 0.0 thumbstick
+}
+
+TEST_F(SystemIntegrationTest, ErrorRecovery) {
+    // Test system recovers from error states
+    
+    // Simulate system error
+    saberManager->SetSaberActive(false);
+    EXPECT_FALSE(saberManager->IsSaberActive());
+    
+    // System should recover
+    saberManager->SetSaberActive(true);
+    EXPECT_TRUE(saberManager->IsSaberActive());
+    
+    // Tricks should still work after recovery
+    inputSystem->SetTrigger(0.8f);
+    trickSystem->ProcessInput(*inputSystem);
+    EXPECT_TRUE(trickSystem->IsThrowActive());
+}
+
+TEST_F(SystemIntegrationTest, ConcurrentOperations) {
+    // Test system handles concurrent operations
+    
+    // Activate multiple systems simultaneously
+    saberManager->SetSaberActive(true);
+    inputSystem->SetTrigger(0.8f);
+    inputSystem->SetThumbstick(0.6f);
+    inputSystem->SetGrip(true);
+    
+    trickSystem->ProcessInput(*inputSystem);
+    
+    // All should work together
+    EXPECT_TRUE(saberManager->IsSaberActive());
+    EXPECT_TRUE(trickSystem->IsThrowActive());
+    EXPECT_TRUE(trickSystem->IsSpinActive());
+}

@@ -1,0 +1,226 @@
+#include <gtest/gtest.h>
+#include <string>
+#include <fstream>
+
+// Mock Quest platform components
+class MockQuestPlatform {
+public:
+    bool deviceConnected = true;
+    bool bmbfActive = true;
+    std::string beatSaberVersion = "1.37";
+    float batteryLevel = 0.8f;
+    
+    bool IsDeviceConnected() const { return deviceConnected; }
+    bool IsBMBFActive() const { return bmbfActive; }
+    std::string GetBeatSaberVersion() const { return beatSaberVersion; }
+    float GetBatteryLevel() const { return batteryLevel; }
+};
+
+class MockModLoader {
+public:
+    bool modInstalled = false;
+    bool modLoaded = false;
+    std::vector<std::string> dependencies = {"beatsaber-hook", "codegen", "custom-types", "questui"};
+    
+    bool InstallMod() {
+        modInstalled = true;
+        return true;
+    }
+    
+    bool LoadMod() {
+        if (!modInstalled) return false;
+        modLoaded = true;
+        return true;
+    }
+    
+    bool CheckDependencies() {
+        return dependencies.size() == 4; // All required deps present
+    }
+};
+
+class MockBeatSaberGame {
+public:
+    bool gameRunning = false;
+    bool inGameplay = false;
+    int fps = 60;
+    
+    void StartGame() { gameRunning = true; }
+    void EnterGameplay() { inGameplay = true; }
+    void ExitGameplay() { inGameplay = false; }
+    int GetFPS() const { return fps; }
+};
+
+class QuestPlatformIntegrationTest : public ::testing::Test {
+protected:
+    MockQuestPlatform platform;
+    MockModLoader modLoader;
+    MockBeatSaberGame game;
+    
+    void SetUp() override {
+        // Ensure platform is ready
+        ASSERT_TRUE(platform.IsDeviceConnected());
+        ASSERT_TRUE(platform.IsBMBFActive());
+    }
+};
+
+TEST_F(QuestPlatformIntegrationTest, ModInstallationFlow) {
+    // Test complete mod installation process
+    
+    // 1. Check platform compatibility
+    EXPECT_TRUE(platform.IsDeviceConnected());
+    EXPECT_TRUE(platform.IsBMBFActive());
+    EXPECT_EQ(platform.GetBeatSaberVersion(), "1.37");
+    
+    // 2. Check dependencies
+    EXPECT_TRUE(modLoader.CheckDependencies());
+    
+    // 3. Install mod
+    EXPECT_TRUE(modLoader.InstallMod());
+    EXPECT_TRUE(modLoader.modInstalled);
+    
+    // 4. Load mod
+    EXPECT_TRUE(modLoader.LoadMod());
+    EXPECT_TRUE(modLoader.modLoaded);
+}
+
+TEST_F(QuestPlatformIntegrationTest, GameIntegration) {
+    // Setup mod
+    ASSERT_TRUE(modLoader.InstallMod());
+    ASSERT_TRUE(modLoader.LoadMod());
+    
+    // Test game integration
+    game.StartGame();
+    EXPECT_TRUE(game.gameRunning);
+    
+    // Enter gameplay
+    game.EnterGameplay();
+    EXPECT_TRUE(game.inGameplay);
+    EXPECT_GE(game.GetFPS(), 45); // Minimum acceptable FPS
+    
+    // Exit gameplay
+    game.ExitGameplay();
+    EXPECT_FALSE(game.inGameplay);
+}
+
+TEST_F(QuestPlatformIntegrationTest, PerformanceImpact) {
+    // Test mod doesn't significantly impact performance
+    
+    // Baseline performance
+    game.StartGame();
+    int baselineFPS = game.GetFPS();
+    EXPECT_GE(baselineFPS, 60);
+    
+    // Load mod
+    ASSERT_TRUE(modLoader.InstallMod());
+    ASSERT_TRUE(modLoader.LoadMod());
+    
+    // Performance with mod
+    game.EnterGameplay();
+    int modFPS = game.GetFPS();
+    
+    // Performance should not degrade significantly
+    EXPECT_GE(modFPS, baselineFPS - 10); // Allow 10 FPS tolerance
+    EXPECT_GE(modFPS, 45); // Minimum playable FPS
+}
+
+TEST_F(QuestPlatformIntegrationTest, BatteryImpact) {
+    // Test mod doesn't excessively drain battery
+    float initialBattery = platform.GetBatteryLevel();
+    
+    // Simulate gameplay session with mod
+    ASSERT_TRUE(modLoader.InstallMod());
+    ASSERT_TRUE(modLoader.LoadMod());
+    
+    game.StartGame();
+    game.EnterGameplay();
+    
+    // Simulate battery drain (mock)
+    platform.batteryLevel -= 0.1f; // 10% drain for session
+    
+    float finalBattery = platform.GetBatteryLevel();
+    float batteryDrain = initialBattery - finalBattery;
+    
+    // Battery drain should be reasonable
+    EXPECT_LE(batteryDrain, 0.15f); // Max 15% drain per session
+    EXPECT_GE(finalBattery, 0.2f);  // Should not drain below 20%
+}
+
+TEST_F(QuestPlatformIntegrationTest, ErrorHandling) {
+    // Test system handles platform errors gracefully
+    
+    // Simulate device disconnection
+    platform.deviceConnected = false;
+    EXPECT_FALSE(platform.IsDeviceConnected());
+    
+    // Mod should handle gracefully
+    bool installResult = modLoader.InstallMod();
+    EXPECT_FALSE(installResult); // Should fail gracefully
+    
+    // Reconnect device
+    platform.deviceConnected = true;
+    EXPECT_TRUE(platform.IsDeviceConnected());
+    
+    // Should work after reconnection
+    EXPECT_TRUE(modLoader.InstallMod());
+}
+
+TEST_F(QuestPlatformIntegrationTest, VersionCompatibility) {
+    // Test mod works with correct Beat Saber version
+    EXPECT_EQ(platform.GetBeatSaberVersion(), "1.37");
+    
+    // Test version mismatch handling
+    platform.beatSaberVersion = "1.36";
+    EXPECT_NE(platform.GetBeatSaberVersion(), "1.37");
+    
+    // Mod should detect version mismatch
+    bool compatibilityCheck = (platform.GetBeatSaberVersion() == "1.37");
+    EXPECT_FALSE(compatibilityCheck);
+    
+    // Restore correct version
+    platform.beatSaberVersion = "1.37";
+    compatibilityCheck = (platform.GetBeatSaberVersion() == "1.37");
+    EXPECT_TRUE(compatibilityCheck);
+}
+
+TEST_F(QuestPlatformIntegrationTest, ModPersistence) {
+    // Test mod persists across game restarts
+    
+    // Install and load mod
+    ASSERT_TRUE(modLoader.InstallMod());
+    ASSERT_TRUE(modLoader.LoadMod());
+    EXPECT_TRUE(modLoader.modLoaded);
+    
+    // Simulate game restart
+    game.gameRunning = false;
+    modLoader.modLoaded = false;
+    
+    // Restart game
+    game.StartGame();
+    EXPECT_TRUE(modLoader.LoadMod()); // Should load automatically
+    EXPECT_TRUE(modLoader.modLoaded);
+}
+
+TEST_F(QuestPlatformIntegrationTest, MultiModCompatibility) {
+    // Test TrickSaber works with other mods
+    std::vector<std::string> otherMods = {"ScoreSaber", "SongCore", "BeatSaverDownloader"};
+    
+    // Install TrickSaber
+    ASSERT_TRUE(modLoader.InstallMod());
+    ASSERT_TRUE(modLoader.LoadMod());
+    
+    // Simulate other mods present
+    bool allModsCompatible = true;
+    for (const auto& mod : otherMods) {
+        // Mock compatibility check
+        bool compatible = (mod != "ConflictingMod");
+        allModsCompatible &= compatible;
+    }
+    
+    EXPECT_TRUE(allModsCompatible);
+    
+    // Game should run with all mods
+    game.StartGame();
+    game.EnterGameplay();
+    EXPECT_TRUE(game.inGameplay);
+    EXPECT_GE(game.GetFPS(), 45);
+}

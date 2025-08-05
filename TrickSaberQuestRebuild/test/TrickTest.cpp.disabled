@@ -1,0 +1,86 @@
+#include <gtest/gtest.h>
+#include "TrickSaber/Tricks/Trick.hpp"
+
+using namespace TrickSaber::Tricks;
+
+class MockSaberTrickManager {
+public:
+    bool isActive = false;
+    float lastValue = 0.0f;
+};
+
+class MockSaberTrickModel {
+public:
+    bool isEnabled = true;
+    float threshold = 0.5f;
+};
+
+class TrickTest : public ::testing::Test {
+protected:
+    MockSaberTrickManager mockManager;
+    MockSaberTrickModel mockModel;
+    
+    void SetUp() override {
+        mockManager.isActive = false;
+        mockManager.lastValue = 0.0f;
+        mockModel.isEnabled = true;
+        mockModel.threshold = 0.5f;
+    }
+};
+
+TEST_F(TrickTest, InitialState) {
+    // Test basic structure without Unity dependencies
+    EXPECT_FALSE(mockManager.isActive);
+    EXPECT_EQ(mockManager.lastValue, 0.0f);
+    EXPECT_TRUE(mockModel.isEnabled);
+}
+
+TEST_F(TrickTest, ThresholdLogic) {
+    // Test threshold-based activation logic
+    float testValue = 0.7f;
+    bool shouldActivate = testValue > mockModel.threshold;
+    
+    EXPECT_TRUE(shouldActivate);
+    
+    testValue = 0.3f;
+    shouldActivate = testValue > mockModel.threshold;
+    
+    EXPECT_FALSE(shouldActivate);
+}
+
+TEST_F(TrickTest, StateTransitions) {
+    // Test state management
+    EXPECT_FALSE(mockManager.isActive);
+    
+    // Simulate activation
+    mockManager.isActive = true;
+    mockManager.lastValue = 0.8f;
+    
+    EXPECT_TRUE(mockManager.isActive);
+    EXPECT_EQ(mockManager.lastValue, 0.8f);
+    
+    // Simulate deactivation
+    mockManager.isActive = false;
+    mockManager.lastValue = 0.0f;
+    
+    EXPECT_FALSE(mockManager.isActive);
+    EXPECT_EQ(mockManager.lastValue, 0.0f);
+}
+
+TEST_F(TrickTest, BoundaryValues) {
+    // Test edge cases
+    float exactThreshold = mockModel.threshold;
+    bool shouldActivate = exactThreshold > mockModel.threshold;
+    
+    EXPECT_FALSE(shouldActivate); // Exact threshold should not activate
+    
+    float justAbove = mockModel.threshold + 0.001f;
+    shouldActivate = justAbove > mockModel.threshold;
+    
+    EXPECT_TRUE(shouldActivate);
+    
+    float justBelow = mockModel.threshold - 0.001f;
+    shouldActivate = justBelow > mockModel.threshold;
+    
+    EXPECT_FALSE(shouldActivate);
+}

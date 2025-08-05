@@ -1,0 +1,211 @@
+#include <gtest/gtest.h>
+#include "VRControllerMock.hpp"
+
+// Implementation of MockQuest3Controller methods
+MockQuest3Controller::MockQuest3Controller(bool rightHand) : isRightHand(rightHand) {
+    lastUpdate = std::chrono::steady_clock::now();
+}
+
+void MockQuest3Controller::SimulateMovement(const UnityEngine::Vector3& targetPos, float deltaTime) {
+    auto currentPos = state.position;
+    auto direction = UnityEngine::Vector3(
+        targetPos.x - currentPos.x,
+        targetPos.y - currentPos.y,
+        targetPos.z - currentPos.z
+    );
+    
+    float distance = sqrt(direction.x*direction.x + direction.y*direction.y + direction.z*direction.z);
+    if (distance > 0.001f) {
+        // Apply physics constraints
+        float maxMove = MAX_VELOCITY * deltaTime;
+        if (distance > maxMove) {
+            float scale = maxMove / distance;
+            direction.x *= scale;
+            direction.y *= scale;
+            direction.z *= scale;
+        }
+        
+        state.velocity = UnityEngine::Vector3(direction.x / deltaTime, direction.y / deltaTime, direction.z / deltaTime);
+        state.position = UnityEngine::Vector3(currentPos.x + direction.x, currentPos.y + direction.y, currentPos.z + direction.z);
+    }
+}
+
+void MockQuest3Controller::SetTrigger(float value) {
+    state.triggerValue = std::clamp(value, 0.0f, 1.0f);
+    state.triggerPressed = state.triggerValue > TRIGGER_THRESHOLD;
+    state.triggerTouched = state.triggerValue > 0.01f;
+}
+
+void MockQuest3Controller::SetGrip(float value) {
+    state.gripValue = std::clamp(value, 0.0f, 1.0f);
+    state.gripPressed = state.gripValue > GRIP_THRESHOLD;
+}
+
+void MockQuest3Controller::SetThumbstick(float x, float y) {
+    state.thumbstick.x = std::clamp(x, -1.0f, 1.0f);
+    state.thumbstick.y = std::clamp(y, -1.0f, 1.0f);
+    
+    float magnitude = sqrt(x*x + y*y);
+    state.thumbstickTouch = magnitude > 0.01f;
+}
+
+void MockQuest3Controller::SetPrimaryButton(bool pressed, bool touched) {
+    state.primaryButton = pressed;
+    state.primaryTouch = touched || pressed;
+}
+
+void MockQuest3Controller::SetSecondaryButton(bool pressed, bool touched) {
+    state.secondaryButton = pressed;
+    state.secondaryTouch = touched || pressed;
+}
+
+void MockQuest3Controller::TriggerHaptic(float intensity, float duration) {
+    state.hapticIntensity = std::clamp(intensity, 0.0f, 1.0f);
+    state.hapticDuration = std::max(0.0f, duration);
+}
+
+void MockQuest3Controller::SimulateThrowMotion(float progress) {
+    float t = std::clamp(progress, 0.0f, 1.0f);
+    
+    // Realistic throw arc
+    state.position.x = sin(t * M_PI) * 0.3f;
+    state.position.y = -0.1f + sin(t * M_PI * 0.5f) * 0.2f;
+    state.position.z = -0.3f + t * 0.6f;
+    
+    // Rotation during throw
+    float angle = t * 180.0f * M_PI / 180.0f;
+    state.rotation = UnityEngine::Quaternion(sin(angle/2), 0, 0, cos(angle/2));
+    
+    // Velocity peaks mid-throw
+    float velocityMagnitude = sin(t * M_PI) * 5.0f;
+    state.velocity = UnityEngine::Vector3(0, 0, velocityMagnitude);
+}
+
+class VRControllerMockTest : public ::testing::Test {
+protected:
+    MockQuest3Controller rightController{true};
+    MockQuest3Controller leftController{false};
+    
+    void SetUp() override {
+        // Reset controllers to neutral position
+        rightController = MockQuest3Controller(true);
+        leftController = MockQuest3Controller(false);
+    }
+};
+
+TEST_F(VRControllerMockTest, BasicControllerState) {
+    auto state = rightController.GetState();
+    
+    EXPECT_EQ(state.position.x, 0.0f);
+    EXPECT_EQ(state.position.y, 0.0f);
+    EXPECT_EQ(state.position.z, 0.0f);
+    EXPECT_FALSE(state.triggerPressed);
+    EXPECT_FALSE(state.gripPressed);
+    EXPECT_EQ(state.triggerValue, 0.0f);
+}
+
+TEST_F(VRControllerMockTest, TriggerSimulation) {
+    // Test trigger stages
+    rightController.SetTrigger(0.05f);
+    auto state1 = rightController.GetState();
+    EXPECT_FALSE(state1.triggerPressed);
+    EXPECT_TRUE(state1.triggerTouched);
+    
+    rightController.SetTrigger(0.5f);
+    auto state2 = rightController.GetState();
+    EXPECT_TRUE(state2.triggerPressed);
+    EXPECT_TRUE(state2.triggerTouched);
+    EXPECT_FLOAT_EQ(state2.triggerValue, 0.5f);
+}
+
+TEST_F(VRControllerMockTest, ThumbstickInput) {
+    rightController.SetThumbstick(0.8f, -0.6f);
+    auto state = rightController.GetState();
+    
+    EXPECT_FLOAT_EQ(state.thumbstick.x, 0.8f);
+    EXPECT_FLOAT_EQ(state.thumbstick.y, -0.6f);
+    EXPECT_TRUE(state.thumbstickTouch);
+    
+    // Test deadzone
+    rightController.SetThumbstick(0.005f, 0.005f);
+    auto state2 = rightController.GetState();
+    EXPECT_FALSE(state2.thumbstickTouch);
+}
+
+TEST_F(VRControllerMockTest, ButtonSimulation) {
+    // Right controller: A/B buttons
+    rightController.SetPrimaryButton(true, true);
+    rightController.SetSecondaryButton(false, true);
+    
+    auto state = rightController.GetState();
+    EXPECT_TRUE(state.primaryButton);
+    EXPECT_TRUE(state.primaryTouch);
+    EXPECT_FALSE(state.secondaryButton);
+    EXPECT_TRUE(state.secondaryTouch);
+}
+
+TEST_F(VRControllerMockTest, MovementSimulation) {
+    UnityEngine::Vector3 target(0.5f, 0.2f, -0.3f);
+    float deltaTime = 0.016f; // 60fps
+    
+    rightController.SimulateMovement(target, deltaTime);
+    auto state = rightController.GetState();
+    
+    // Should move toward target
+    EXPECT_GT(state.position.x, 0.0f);
+    EXPECT_GT(state.velocity.x, 0.0f);
+}
+
+TEST_F(VRControllerMockTest, ThrowMotionSimulation) {
+    // Simulate complete throw motion
+    for (float t = 0.0f; t <= 1.0f; t += 0.1f) {
+        rightController.SimulateThrowMotion(t);
+        auto state = rightController.GetState();
+        
+        // Verify realistic motion constraints
+        EXPECT_GE(state.position.z, -0.3f);
+        EXPECT_LE(state.position.z, 0.3f);
+        EXPECT_LE(abs(state.velocity.z), 10.0f); // Max velocity constraint
+    }
+}
+
+TEST_F(VRControllerMockTest, HapticFeedback) {
+    rightController.TriggerHaptic(0.8f, 100.0f);
+    auto state = rightController.GetState();
+    
+    EXPECT_FLOAT_EQ(state.hapticIntensity, 0.8f);
+    EXPECT_FLOAT_EQ(state.hapticDuration, 100.0f);
+    
+    // Test clamping
+    rightController.TriggerHaptic(1.5f, -10.0f);
+    auto state2 = rightController.GetState();
+    EXPECT_FLOAT_EQ(state2.hapticIntensity, 1.0f);
+    EXPECT_FLOAT_EQ(state2.hapticDuration, 0.0f);
+}
+
+TEST_F(VRControllerMockTest, PhysicsConstraints) {
+    // Test velocity limits
+    UnityEngine::Vector3 farTarget(100.0f, 100.0f, 100.0f);
+    float deltaTime = 0.016f;
+    
+    rightController.SimulateMovement(farTarget, deltaTime);
+    auto state = rightController.GetState();
+    
+    float velocityMagnitude = sqrt(state.velocity.x*state.velocity.x + 
+                                  state.velocity.y*state.velocity.y + 
+                                  state.velocity.z*state.velocity.z);
+    
+    EXPECT_LE(velocityMagnitude, 10.1f); // Allow small floating point error
+}
+
+TEST_F(VRControllerMockTest, LeftRightHandDifference) {
+    EXPECT_TRUE(rightController.IsRightHand());
+    EXPECT_FALSE(leftController.IsRightHand());
+    
+    // Both controllers should have independent state
+    rightController.SetTrigger(0.5f);
+    leftController.SetTrigger(0.8f);
+    
+    EXPECT_FLOAT_EQ(rightController.GetState().triggerValue, 0.5f);
+    EXPECT_FLOAT_EQ(leftController.GetState().triggerValue, 0.8f);
+}

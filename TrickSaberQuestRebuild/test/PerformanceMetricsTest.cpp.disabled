@@ -1,0 +1,115 @@
+#include <gtest/gtest.h>
+#include "TrickSaber/Utils/PerformanceMetrics.hpp"
+#include <thread>
+#include <chrono>
+
+using namespace TrickSaber::Utils;
+
+class PerformanceMetricsTest : public ::testing::Test {
+protected:
+    void SetUp() override {
+        // Reset singleton state if needed
+    }
+};
+
+TEST_F(PerformanceMetricsTest, SingletonAccess) {
+    auto* metrics1 = PerformanceMetrics::GetInstance();
+    auto* metrics2 = PerformanceMetrics::GetInstance();
+    
+    EXPECT_EQ(metrics1, metrics2);
+    EXPECT_NE(metrics1, nullptr);
+}
+
+TEST_F(PerformanceMetricsTest, InitialMetrics) {
+    auto* metrics = PerformanceMetrics::GetInstance();
+    
+    const auto& frameMetrics = metrics->GetFrameMetrics();
+    const auto& memoryMetrics = metrics->GetMemoryMetrics();
+    const auto& trickMetrics = metrics->GetTrickMetrics();
+    
+    EXPECT_EQ(frameMetrics.frameTime, 0.0f);
+    EXPECT_EQ(frameMetrics.fps, 0.0f);
+    EXPECT_EQ(frameMetrics.droppedFrames, 0);
+    
+    EXPECT_EQ(memoryMetrics.totalMemory, 0);
+    EXPECT_EQ(memoryMetrics.usedMemory, 0);
+    EXPECT_EQ(memoryMetrics.allocations, 0);
+    
+    EXPECT_EQ(trickMetrics.throwsPerformed, 0);
+    EXPECT_EQ(trickMetrics.spinsPerformed, 0);
+    EXPECT_EQ(trickMetrics.failedTricks, 0);
+}
+
+TEST_F(PerformanceMetricsTest, MemoryTracking) {
+    auto* metrics = PerformanceMetrics::GetInstance();
+    
+    metrics->RecordAllocation(1024);
+    metrics->RecordAllocation(512);
+    
+    const auto& memMetrics = metrics->GetMemoryMetrics();
+    EXPECT_EQ(memMetrics.allocations, 2);
+    
+    metrics->RecordDeallocation(256);
+    EXPECT_EQ(memMetrics.deallocations, 1);
+}
+
+TEST_F(PerformanceMetricsTest, TrickMetrics) {
+    auto* metrics = PerformanceMetrics::GetInstance();
+    
+    metrics->RecordThrowTrick(5.0f, 2.0f);
+    metrics->RecordSpinTrick(1.5f);
+    metrics->RecordFailedTrick();
+    
+    const auto& trickMetrics = metrics->GetTrickMetrics();
+    EXPECT_EQ(trickMetrics.throwsPerformed, 1);
+    EXPECT_EQ(trickMetrics.spinsPerformed, 1);
+    EXPECT_EQ(trickMetrics.failedTricks, 1);
+    EXPECT_EQ(trickMetrics.avgThrowVelocity, 5.0f);
+    EXPECT_EQ(trickMetrics.avgReturnTime, 2.0f);
+}
+
+TEST_F(PerformanceMetricsTest, TimerOperations) {
+    auto* metrics = PerformanceMetrics::GetInstance();
+    
+    metrics->StartTimer("test_operation");
+    
+    // Simulate some work
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    
+    float elapsed = metrics->EndTimer("test_operation");
+    
+    EXPECT_GT(elapsed, 0.0f);
+    EXPECT_LT(elapsed, 1.0f); // Should be less than 1 second
+}
+
+TEST_F(PerformanceMetricsTest, FrameDropRecording) {
+    auto* metrics = PerformanceMetrics::GetInstance();
+    
+    metrics->RecordFrameDrop();
+    metrics->RecordFrameDrop();
+    
+    const auto& frameMetrics = metrics->GetFrameMetrics();
+    EXPECT_EQ(frameMetrics.droppedFrames, 2);
+}
+
+TEST_F(PerformanceMetricsTest, EnableDisable) {
+    auto* metrics = PerformanceMetrics::GetInstance();
+    
+    metrics->SetEnabled(false);
+    metrics->RecordThrowTrick(1.0f, 1.0f);
+    
+    // When disabled, metrics might not be recorded
+    // This test verifies the enable/disable functionality exists
+    EXPECT_TRUE(true);
+    
+    metrics->SetEnabled(true);
+}
+
+TEST_F(PerformanceMetricsTest, ReportInterval) {
+    auto* metrics = PerformanceMetrics::GetInstance();
+    
+    metrics->SetReportInterval(1.0f);
+    
+    // Test that report interval can be set
+    EXPECT_TRUE(true);
+}

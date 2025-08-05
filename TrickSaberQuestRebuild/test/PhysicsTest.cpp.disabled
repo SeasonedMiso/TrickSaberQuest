@@ -1,0 +1,118 @@
+#include <gtest/gtest.h>
+#include "UnityEngine/Vector3.hpp"
+#include "UnityEngine/Quaternion.hpp"
+#include <cmath>
+
+class PhysicsTest : public ::testing::Test {
+protected:
+    float CalculateThrowVelocity(const UnityEngine::Vector3& controllerVelocity, float multiplier) {
+        float magnitude = sqrt(controllerVelocity.x * controllerVelocity.x + 
+                              controllerVelocity.y * controllerVelocity.y + 
+                              controllerVelocity.z * controllerVelocity.z);
+        return magnitude * multiplier;
+    }
+    
+    UnityEngine::Vector3 ApplyGravity(const UnityEngine::Vector3& velocity, float deltaTime, float gravityScale = 1.0f) {
+        return UnityEngine::Vector3(velocity.x, 
+                                   velocity.y - (9.81f * gravityScale * deltaTime), 
+                                   velocity.z);
+    }
+    
+    UnityEngine::Vector3 ApplyAirResistance(const UnityEngine::Vector3& velocity, float resistance) {
+        return UnityEngine::Vector3(velocity.x * resistance,
+                                   velocity.y * resistance,
+                                   velocity.z * resistance);
+    }
+    
+    float CalculateSpinSpeed(float inputValue, float baseSpeed, bool velocityDependent, float controllerSpeed = 0.0f) {
+        float speed = inputValue * baseSpeed;
+        if (velocityDependent) {
+            speed *= (1.0f + controllerSpeed * 0.5f);
+        }
+        return speed;
+    }
+};
+
+TEST_F(PhysicsTest, ThrowVelocityCalculation) {
+    UnityEngine::Vector3 controllerVel(2.0f, 1.0f, 0.0f);
+    float multiplier = 3.0f;
+    
+    float throwVel = CalculateThrowVelocity(controllerVel, multiplier);
+    float expectedMagnitude = sqrt(2.0f*2.0f + 1.0f*1.0f) * multiplier;
+    
+    EXPECT_FLOAT_EQ(throwVel, expectedMagnitude);
+}
+
+TEST_F(PhysicsTest, GravityApplication) {
+    UnityEngine::Vector3 initialVel(5.0f, 10.0f, 0.0f);
+    float deltaTime = 0.016f; // ~60fps
+    
+    UnityEngine::Vector3 newVel = ApplyGravity(initialVel, deltaTime);
+    
+    EXPECT_FLOAT_EQ(newVel.x, 5.0f);
+    EXPECT_LT(newVel.y, 10.0f); // Should decrease due to gravity
+    EXPECT_FLOAT_EQ(newVel.z, 0.0f);
+}
+
+TEST_F(PhysicsTest, AirResistance) {
+    UnityEngine::Vector3 velocity(10.0f, 5.0f, -3.0f);
+    float resistance = 0.98f;
+    
+    UnityEngine::Vector3 newVel = ApplyAirResistance(velocity, resistance);
+    
+    EXPECT_LT(abs(newVel.x), abs(velocity.x));
+    EXPECT_LT(abs(newVel.y), abs(velocity.y));
+    EXPECT_LT(abs(newVel.z), abs(velocity.z));
+}
+
+TEST_F(PhysicsTest, SpinSpeedCalculation) {
+    float inputValue = 0.8f;
+    float baseSpeed = 360.0f; // degrees per second
+    
+    // Non-velocity dependent
+    float speed1 = CalculateSpinSpeed(inputValue, baseSpeed, false);
+    EXPECT_FLOAT_EQ(speed1, inputValue * baseSpeed);
+    
+    // Velocity dependent
+    float controllerSpeed = 2.0f;
+    float speed2 = CalculateSpinSpeed(inputValue, baseSpeed, true, controllerSpeed);
+    EXPECT_GT(speed2, speed1);
+}
+
+TEST_F(PhysicsTest, VectorMagnitude) {
+    UnityEngine::Vector3 vec(3.0f, 4.0f, 0.0f);
+    float magnitude = sqrt(vec.x*vec.x + vec.y*vec.y + vec.z*vec.z);
+    
+    EXPECT_FLOAT_EQ(magnitude, 5.0f); // 3-4-5 triangle
+}
+
+TEST_F(PhysicsTest, VectorNormalization) {
+    UnityEngine::Vector3 vec(6.0f, 8.0f, 0.0f);
+    float magnitude = sqrt(vec.x*vec.x + vec.y*vec.y + vec.z*vec.z);
+    
+    UnityEngine::Vector3 normalized(vec.x/magnitude, vec.y/magnitude, vec.z/magnitude);
+    
+    float normalizedMag = sqrt(normalized.x*normalized.x + normalized.y*normalized.y + normalized.z*normalized.z);
+    EXPECT_NEAR(normalizedMag, 1.0f, 0.001f);
+}
+
+TEST_F(PhysicsTest, DistanceCalculation) {
+    UnityEngine::Vector3 pos1(0.0f, 0.0f, 0.0f);
+    UnityEngine::Vector3 pos2(3.0f, 4.0f, 0.0f);
+    
+    float distance = sqrt((pos2.x - pos1.x) * (pos2.x - pos1.x) + 
+                         (pos2.y - pos1.y) * (pos2.y - pos1.y) + 
+                         (pos2.z - pos1.z) * (pos2.z - pos1.z));
+    
+    EXPECT_FLOAT_EQ(distance, 5.0f);
+}
+
+TEST_F(PhysicsTest, QuaternionRotation) {
+    // Test basic quaternion properties
+    UnityEngine::Quaternion identity = UnityEngine::Quaternion::get_identity();
+    
+    EXPECT_FLOAT_EQ(identity.x, 0.0f);
+    EXPECT_FLOAT_EQ(identity.y, 0.0f);
+    EXPECT_FLOAT_EQ(identity.z, 0.0f);
+    EXPECT_FLOAT_EQ(identity.w, 1.0f);
+}

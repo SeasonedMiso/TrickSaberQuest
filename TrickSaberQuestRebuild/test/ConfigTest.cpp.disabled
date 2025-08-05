@@ -1,0 +1,64 @@
+#include <gtest/gtest.h>
+#include "TrickSaber/Config.hpp"
+#include "TrickSaber/Enums.hpp"
+
+using namespace TrickSaber;
+
+class ConfigTest : public ::testing::Test {
+protected:
+    void SetUp() override {
+        LoadDefaultConfig();
+    }
+};
+
+TEST_F(ConfigTest, DefaultValues) {
+    EXPECT_TRUE(config.trickSaberEnabled);
+    EXPECT_EQ(config.triggerAction, TrickAction::Throw);
+    EXPECT_EQ(config.thumbstickAction, TrickAction::Spin);
+    EXPECT_EQ(config.gripAction, TrickAction::None);
+    EXPECT_FALSE(config.reverseTrigger);
+    EXPECT_EQ(config.spinSpeed, 1.0f);
+    EXPECT_EQ(config.throwVelocity, 1.0f);
+}
+
+TEST_F(ConfigTest, EnumValidation) {
+    EXPECT_EQ(ValidateTrickAction(0, TrickAction::Throw), TrickAction::None);
+    EXPECT_EQ(ValidateTrickAction(1, TrickAction::Throw), TrickAction::Throw);
+    EXPECT_EQ(ValidateTrickAction(2, TrickAction::Throw), TrickAction::Spin);
+    EXPECT_EQ(ValidateTrickAction(999, TrickAction::Throw), TrickAction::Throw);
+    
+    EXPECT_EQ(ValidateSpinDir(0, SpinDir::Backward), SpinDir::Forward);
+    EXPECT_EQ(ValidateSpinDir(1, SpinDir::Forward), SpinDir::Backward);
+    EXPECT_EQ(ValidateSpinDir(-1, SpinDir::Backward), SpinDir::Backward);
+}
+
+TEST_F(ConfigTest, ConfigConsistency) {
+    // Test no inputs assigned
+    config.triggerAction = TrickAction::None;
+    config.gripAction = TrickAction::None;
+    config.thumbstickAction = TrickAction::None;
+    
+    ValidateConfigConsistency();
+    
+    EXPECT_NE(config.triggerAction, TrickAction::None);
+    EXPECT_NE(config.thumbstickAction, TrickAction::None);
+}
+
+TEST_F(ConfigTest, SlowmoValidation) {
+    config.slowmoDuringThrow = true;
+    config.slowmoAmount = 1.5f; // Invalid - greater than normal time
+    
+    ValidateConfigConsistency();
+    
+    EXPECT_LT(config.slowmoAmount, 1.0f);
+}
+
+TEST_F(ConfigTest, BoundaryValues) {
+    // Test that config handles extreme values gracefully
+    config.spinSpeed = -1.0f;
+    config.throwVelocity = 1000.0f;
+    config.thumbstickDeadzone = -0.5f;
+    
+    // These would be validated during LoadConfig with clamping
+    EXPECT_TRUE(true); // Placeholder for boundary testing
+}

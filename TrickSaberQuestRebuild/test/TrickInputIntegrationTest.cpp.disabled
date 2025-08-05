@@ -1,0 +1,197 @@
+#include <gtest/gtest.h>
+#include "VRControllerMock.hpp" // Include the mock controller header
+
+// Mock TrickSaber input processing
+class MockTrickInputProcessor {
+private:
+    float triggerThreshold = 0.5f;
+    float thumbstickThreshold = 0.3f;
+    bool throwTrickActive = false;
+    bool spinTrickActive = false;
+    
+public:
+    struct TrickState {
+        bool throwActive = false;
+        bool spinActive = false;
+        float throwVelocity = 0.0f;
+        float spinSpeed = 0.0f;
+    };
+    
+    TrickState ProcessInput(const MockQuest3Controller::ControllerState& state) {
+        TrickState result;
+        
+        // Throw trick logic
+        if (state.triggerValue > triggerThreshold && !throwTrickActive) {
+            throwTrickActive = true;
+            result.throwActive = true;
+            result.throwVelocity = CalculateThrowVelocity(state.velocity);
+        } else if (state.triggerValue <= triggerThreshold && throwTrickActive) {
+            throwTrickActive = false;
+            result.throwActive = false;
+        }
+        
+        // Spin trick logic
+        float thumbstickMagnitude = sqrt(state.thumbstick.x * state.thumbstick.x + 
+                                        state.thumbstick.y * state.thumbstick.y);
+        if (thumbstickMagnitude > thumbstickThreshold && !spinTrickActive) {
+            spinTrickActive = true;
+            result.spinActive = true;
+            result.spinSpeed = thumbstickMagnitude * 360.0f; // degrees/sec
+        } else if (thumbstickMagnitude <= thumbstickThreshold && spinTrickActive) {
+            spinTrickActive = false;
+            result.spinActive = false;
+        }
+        
+        result.throwActive = throwTrickActive;
+        result.spinActive = spinTrickActive;
+        return result;
+    }
+    
+private:
+    float CalculateThrowVelocity(const UnityEngine::Vector3& controllerVel) {
+        float magnitude = sqrt(controllerVel.x*controllerVel.x + 
+                              controllerVel.y*controllerVel.y + 
+                              controllerVel.z*controllerVel.z);
+        return magnitude * 3.0f; // Velocity multiplier
+    }
+};
+
+class TrickInputIntegrationTest : public ::testing::Test {
+protected:
+    MockQuest3Controller controller{true};
+    MockTrickInputProcessor processor;
+    
+    void SetUp() override {
+        controller = MockQuest3Controller(true);
+    }
+};
+
+TEST_F(TrickInputIntegrationTest, ThrowTrickActivation) {
+    // Simulate throw motion sequence
+    controller.SetTrigger(0.8f); // Above threshold
+    controller.SimulateMovement(UnityEngine::Vector3(0, 0, 2.0f), 0.016f);
+    
+    auto state = controller.GetState();
+    auto trickState = processor.ProcessInput(state);
+    
+    EXPECT_TRUE(trickState.throwActive);
+    EXPECT_GT(trickState.throwVelocity, 0.0f);
+}
+
+TEST_F(TrickInputIntegrationTest, ThrowTrickDeactivation) {
+    // Activate throw
+    controller.SetTrigger(0.8f);
+    auto state1 = controller.GetState();
+    auto trickState1 = processor.ProcessInput(state1);
+    EXPECT_TRUE(trickState1.throwActive);
+    
+    // Deactivate throw
+    controller.SetTrigger(0.2f); // Below threshold
+    auto state2 = controller.GetState();
+    auto trickState2 = processor.ProcessInput(state2);
+    EXPECT_FALSE(trickState2.throwActive);
+}
+
+TEST_F(TrickInputIntegrationTest, SpinTrickActivation) {
+    // Simulate spin input
+    controller.SetThumbstick(0.8f, 0.0f); // Horizontal spin
+    
+    auto state = controller.GetState();
+    auto trickState = processor.ProcessInput(state);
+    
+    EXPECT_TRUE(trickState.spinActive);
+    EXPECT_GT(trickState.spinSpeed, 0.0f);
+    EXPECT_NEAR(trickState.spinSpeed, 288.0f, 1.0f); // 0.8 * 360
+}
+
+TEST_F(TrickInputIntegrationTest, SpinTrickDeactivation) {
+    // Activate spin
+    controller.SetThumbstick(0.8f, 0.0f);
+    auto state1 = controller.GetState();
+    auto trickState1 = processor.ProcessInput(state1);
+    EXPECT_TRUE(trickState1.spinActive);
+    
+    // Deactivate spin
+    controller.SetThumbstick(0.1f, 0.0f); // Below threshold
+    auto state2 = controller.GetState();
+    auto trickState2 = processor.ProcessInput(state2);
+    EXPECT_FALSE(trickState2.spinActive);
+}
+
+TEST_F(TrickInputIntegrationTest, SimultaneousTricks) {
+    // Test both tricks active at once
+    controller.SetTrigger(0.8f);
+    controller.SetThumbstick(0.6f, 0.0f);
+    controller.SimulateMovement(UnityEngine::Vector3(0, 0, 1.0f), 0.016f);
+    
+    auto state = controller.GetState();
+    auto trickState = processor.ProcessInput(state);
+    
+    EXPECT_TRUE(trickState.throwActive);
+    EXPECT_TRUE(trickState.spinActive);
+    EXPECT_GT(trickState.throwVelocity, 0.0f);
+    EXPECT_GT(trickState.spinSpeed, 0.0f);
+}
+
+TEST_F(TrickInputIntegrationTest, ThresholdBoundaryTesting) {
+    // Test exact threshold values
+    controller.SetTrigger(0.5f); // Exact threshold
+    auto state1 = controller.GetState();
+    auto trickState1 = processor.ProcessInput(state1);
+    EXPECT_FALSE(trickState1.throwActive); // Should not activate at exact threshold
+    
+    controller.SetTrigger(0.501f); // Just above threshold
+    auto state2 = controller.GetState();
+    auto trickState2 = processor.ProcessInput(state2);
+    EXPECT_TRUE(trickState2.throwActive);
+}
+
+TEST_F(TrickInputIntegrationTest, VelocityBasedThrowPower) {
+    // Test different controller velocities
+    controller.SetTrigger(0.8f);
+    
+    // Slow movement
+    controller.SimulateMovement(UnityEngine::Vector3(0, 0, 0.5f), 0.016f);
+    auto state1 = controller.GetState();
+    auto trickState1 = processor.ProcessInput(state1);
+    
+    // Fast movement
+    controller.SimulateMovement(UnityEngine::Vector3(0, 0, 3.0f), 0.016f);
+    auto state2 = controller.GetState();
+    auto trickState2 = processor.ProcessInput(state2);
+    
+    EXPECT_GT(trickState2.throwVelocity, trickState1.throwVelocity);
+}
+
+TEST_F(TrickInputIntegrationTest, RealisticGameplaySequence) {
+    // Simulate realistic gameplay sequence
+    std::vector<MockTrickInputProcessor::TrickState> states;
+    
+    // 1. Start neutral
+    states.push_back(processor.ProcessInput(controller.GetState()));
+    
+    // 2. Begin throw motion
+    controller.SetTrigger(0.7f);
+    controller.SimulateThrowMotion(0.3f);
+    states.push_back(processor.ProcessInput(controller.GetState()));
+    
+    // 3. Peak of throw
+    controller.SimulateThrowMotion(0.6f);
+    states.push_back(processor.ProcessInput(controller.GetState()));
+    
+    // 4. Release trigger
+    controller.SetTrigger(0.1f);
+    controller.SimulateThrowMotion(0.9f);
+    states.push_back(processor.ProcessInput(controller.GetState()));
+    
+    // 5. Add spin during return
+    controller.SetThumbstick(0.8f, 0.0f);
+    states.push_back(processor.ProcessInput(controller.GetState()));
+    
+    // Verify sequence
+    EXPECT_FALSE(states[0].throwActive); // Neutral
+    EXPECT_TRUE(states[1].throwActive);  // Throw start
+    EXPECT_TRUE(states[2].throwActive);  // Throw peak
+    EXPECT_FALSE(states[3].throwActive); // Throw end
+    EXPECT_TRUE(states[4].spinActive);   // Spin added
+}

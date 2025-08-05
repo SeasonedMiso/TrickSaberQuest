@@ -1,0 +1,1 @@
+/opt/homebrew/Caskroom/android-ndk/28c/AndroidNDK13676358.app/Contents/NDK

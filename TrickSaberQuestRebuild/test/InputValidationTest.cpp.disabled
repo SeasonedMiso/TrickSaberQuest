@@ -1,0 +1,107 @@
+#include <gtest/gtest.h>
+#include "TrickSaber/Constants.hpp"
+#include <algorithm>
+
+using namespace TrickSaber;
+
+class InputValidationTest : public ::testing::Test {
+protected:
+    float ClampThreshold(float value) {
+        return std::clamp(value, Constants::MIN_THRESHOLD, Constants::MAX_THRESHOLD);
+    }
+    
+    float ClampDeadzone(float value) {
+        return std::clamp(value, Constants::MIN_DEADZONE, Constants::MAX_DEADZONE);
+    }
+    
+    float ClampSpeed(float value) {
+        return std::clamp(value, Constants::MIN_SPEED, Constants::MAX_SPEED);
+    }
+    
+    bool IsInputActive(float value, float threshold, bool reverse = false) {
+        float processedValue = reverse ? -value : value;
+        return processedValue > threshold;
+    }
+};
+
+TEST_F(InputValidationTest, ThresholdClamping) {
+    EXPECT_EQ(ClampThreshold(-1.0f), Constants::MIN_THRESHOLD);
+    EXPECT_EQ(ClampThreshold(0.5f), 0.5f);
+    EXPECT_EQ(ClampThreshold(2.0f), Constants::MAX_THRESHOLD);
+}
+
+TEST_F(InputValidationTest, DeadzoneClamping) {
+    EXPECT_EQ(ClampDeadzone(-0.5f), Constants::MIN_DEADZONE);
+    EXPECT_EQ(ClampDeadzone(0.1f), 0.1f);
+    EXPECT_EQ(ClampDeadzone(1.5f), Constants::MAX_DEADZONE);
+}
+
+TEST_F(InputValidationTest, SpeedClamping) {
+    EXPECT_EQ(ClampSpeed(-1.0f), Constants::MIN_SPEED);
+    EXPECT_EQ(ClampSpeed(2.0f), 2.0f);
+    EXPECT_EQ(ClampSpeed(100.0f), Constants::MAX_SPEED);
+}
+
+TEST_F(InputValidationTest, InputActivation) {
+    float threshold = 0.5f;
+    
+    EXPECT_FALSE(IsInputActive(0.3f, threshold));
+    EXPECT_TRUE(IsInputActive(0.7f, threshold));
+    EXPECT_FALSE(IsInputActive(0.5f, threshold)); // Exact threshold
+}
+
+TEST_F(InputValidationTest, ReverseInput) {
+    float threshold = 0.5f;
+    
+    // Normal input
+    EXPECT_TRUE(IsInputActive(0.7f, threshold, false));
+    EXPECT_FALSE(IsInputActive(-0.7f, threshold, false));
+    
+    // Reversed input
+    EXPECT_FALSE(IsInputActive(0.7f, threshold, true));
+    EXPECT_TRUE(IsInputActive(-0.7f, threshold, true));
+}
+
+TEST_F(InputValidationTest, ThumbstickDeadzone) {
+    float deadzone = 0.1f;
+    
+    auto ProcessThumbstick = [deadzone](float x, float y) -> std::pair<float, float> {
+        float magnitude = sqrt(x*x + y*y);
+        if (magnitude < deadzone) {
+            return {0.0f, 0.0f};
+        }
+        
+        float scale = (magnitude - deadzone) / (1.0f - deadzone);
+        return {x * scale / magnitude, y * scale / magnitude};
+    };
+    
+    auto [x1, y1] = ProcessThumbstick(0.05f, 0.05f);
+    EXPECT_EQ(x1, 0.0f);
+    EXPECT_EQ(y1, 0.0f);
+    
+    auto [x2, y2] = ProcessThumbstick(0.5f, 0.0f);
+    EXPECT_GT(x2, 0.0f);
+    EXPECT_EQ(y2, 0.0f);
+}
+
+TEST_F(InputValidationTest, VelocityBufferSize) {
+    int bufferSize = 10;
+    
+    auto ValidateBufferSize = [](int size) -> int {
+        return std::clamp(size, 1, Constants::MAX_VELOCITY_BUFFER_SIZE);
+    };
+    
+    EXPECT_EQ(ValidateBufferSize(0), 1);
+    EXPECT_EQ(ValidateBufferSize(bufferSize), bufferSize);
+    EXPECT_EQ(ValidateBufferSize(1000), Constants::MAX_VELOCITY_BUFFER_SIZE);
+}
+
+TEST_F(InputValidationTest, SlowmoValidation) {
+    auto ValidateSlowmo = [](float amount) -> float {
+        return std::clamp(amount, Constants::MIN_SLOWMO, Constants::MAX_SLOWMO);
+    };
+    
+    EXPECT_EQ(ValidateSlowmo(0.0f), Constants::MIN_SLOWMO);
+    EXPECT_EQ(ValidateSlowmo(0.5f), 0.5f);
+    EXPECT_EQ(ValidateSlowmo(2.0f), Constants::MAX_SLOWMO);
+}

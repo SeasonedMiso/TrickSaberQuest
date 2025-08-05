@@ -1,0 +1,5 @@
+if(EXISTS "/Users/mac83/dev/TrickSaber/TrickSaberQuestRebuild/build/tricksaber_test[1]_tests.cmake")
+  include("/Users/mac83/dev/TrickSaber/TrickSaberQuestRebuild/build/tricksaber_test[1]_tests.cmake")
+else()
+  add_test(tricksaber_test_NOT_BUILT tricksaber_test_NOT_BUILT)
+endif()

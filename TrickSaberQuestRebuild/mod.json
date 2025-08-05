@@ -1,0 +1,26 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Lauriethefish/QuestPatcher.QMod/main/QuestPatcher.QMod/Resources/qmod.schema.json",
+  "_QPVersion": "0.1.1",
+  "name": "TrickSaber",
+  "id": "tricksaber",
+  "author": "Toni Macaroni",
+  "version": "1.0.0",
+  "packageId": "com.beatgames.beatsaber",
+  "packageVersion": "1.37.0_9999999999",
+  "description": "Perform saber tricks like spinning and throwing with full physics simulation and customizable controls. Port of the popular PC TrickSaber mod.",
+  "dependencies": [
+    {
+      "id": "custom-types",
+      "version": "^0.17.10",
+      "downloadIfMissing": "https://github.com/QuestPackageManager/bs-cordl/releases/download/v3700.0.0/custom-types.qmod"
+    },
+    {
+      "id": "bsml",
+      "version": "^0.4.43",
+      "downloadIfMissing": "https://github.com/QuestPackageManager/bs-cordl/releases/download/v3700.0.0/bsml.qmod"
+    }
+  ],
+  "modFiles": ["libtricksaber.so"],
+  "libraryFiles": [],
+  "fileCopies": []
+}

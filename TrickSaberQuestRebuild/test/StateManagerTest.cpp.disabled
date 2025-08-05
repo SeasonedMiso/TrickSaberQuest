@@ -1,0 +1,121 @@
+#include <gtest/gtest.h>
+#include "TrickSaber/Core/StateManager.hpp"
+#include <thread>
+#include <chrono>
+
+using namespace TrickSaber::Core;
+
+class StateManagerTest : public ::testing::Test {
+protected:
+    void SetUp() override {
+        StateManager::DestroyInstance();
+    }
+    
+    void TearDown() override {
+        StateManager::DestroyInstance();
+    }
+};
+
+TEST_F(StateManagerTest, SingletonInstance) {
+    auto* instance1 = StateManager::GetInstance();
+    auto* instance2 = StateManager::GetInstance();
+    
+    EXPECT_EQ(instance1, instance2);
+    EXPECT_NE(instance1, nullptr);
+}
+
+TEST_F(StateManagerTest, ThreadSafeSingleton) {
+    StateManager* instances[10] = {nullptr};
+    std::thread threads[10];
+    
+    for (int i = 0; i < 10; ++i) {
+        threads[i] = std::thread([&instances, i]() {
+            instances[i] = StateManager::GetInstance();
+        });
+    }
+    
+    for (auto& t : threads) {
+        t.join();
+    }
+    
+    for (int i = 1; i < 10; ++i) {
+        EXPECT_EQ(instances[0], instances[i]);
+    }
+}
+
+TEST_F(StateManagerTest, InitialState) {
+    auto* manager = StateManager::GetInstance();
+    
+    EXPECT_FALSE(manager->IsInitialized());
+    EXPECT_EQ(manager->GetNoteCount(), 0);
+    EXPECT_EQ(manager->GetSaberManager(), nullptr);
+    EXPECT_EQ(manager->GetLeftSaber(), nullptr);
+    EXPECT_EQ(manager->GetRightSaber(), nullptr);
+    EXPECT_TRUE(manager->GetSaberTransforms().empty());
+}
+
+TEST_F(StateManagerTest, NoteCountManagement) {
+    auto* manager = StateManager::GetInstance();
+    
+    manager->IncrementNoteCount();
+    EXPECT_EQ(manager->GetNoteCount(), 1);
+    
+    manager->IncrementNoteCount();
+    EXPECT_EQ(manager->GetNoteCount(), 2);
+    
+    manager->DecrementNoteCount();
+    EXPECT_EQ(manager->GetNoteCount(), 1);
+    
+    // Test underflow protection
+    manager->DecrementNoteCount();
+    manager->DecrementNoteCount();
+    EXPECT_EQ(manager->GetNoteCount(), 0);
+    
+    manager->ResetNoteCount();
+    EXPECT_EQ(manager->GetNoteCount(), 0);
+}
+
+TEST_F(StateManagerTest, CacheValidation) {
+    auto* manager = StateManager::GetInstance();
+    
+    EXPECT_TRUE(manager->ShouldValidateCache());
+    
+    manager->UpdateCacheValidationTime();
+    EXPECT_FALSE(manager->ShouldValidateCache());
+}
+
+TEST_F(StateManagerTest, SaberTransformManagement) {
+    auto* manager = StateManager::GetInstance();
+    
+    // Mock pointers for testing
+    GlobalNamespace::Saber* mockSaber = reinterpret_cast<GlobalNamespace::Saber*>(0x1000);
+    UnityEngine::Transform* mockTransform = reinterpret_cast<UnityEngine::Transform*>(0x2000);
+    
+    manager->AddSaberTransform(mockSaber, mockTransform);
+    EXPECT_EQ(manager->GetSaberTransform(mockSaber), mockTransform);
+    
+    // Test null handling
+    manager->AddSaberTransform(nullptr, mockTransform);
+    manager->AddSaberTransform(mockSaber, nullptr);
+    EXPECT_EQ(manager->GetSaberTransforms().size(), 1);
+}
+
+TEST_F(StateManagerTest, Reset) {
+    auto* manager = StateManager::GetInstance();
+    
+    // Set some state
+    manager->SetInitialized(true);
+    manager->IncrementNoteCount();
+    
+    GlobalNamespace::Saber* mockSaber = reinterpret_cast<GlobalNamespace::Saber*>(0x1000);
+    UnityEngine::Transform* mockTransform = reinterpret_cast<UnityEngine::Transform*>(0x2000);
+    manager->AddSaberTransform(mockSaber, mockTransform);
+    
+    // Reset and verify
+    manager->Reset();
+    
+    EXPECT_FALSE(manager->IsInitialized());
+    EXPECT_EQ(manager->GetNoteCount(), 0);
+    EXPECT_EQ(manager->GetSaberManager(), nullptr);
+    EXPECT_TRUE(manager->GetSaberTransforms().empty());
+}

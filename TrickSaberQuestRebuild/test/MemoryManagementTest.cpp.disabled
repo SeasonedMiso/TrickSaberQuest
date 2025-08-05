@@ -1,0 +1,189 @@
+#include <gtest/gtest.h>
+#include <memory>
+#include <vector>
+#include <queue>
+
+// Mock memory pool for testing
+template<typename T>
+class MockObjectPool {
+private:
+    std::queue<std::unique_ptr<T>> available;
+    std::vector<std::unique_ptr<T>> all;
+    size_t maxSize;
+    
+public:
+    MockObjectPool(size_t max = 50) : maxSize(max) {}
+    
+    T* Acquire() {
+        if (available.empty()) {
+            if (all.size() >= maxSize) {
+                return nullptr; // Pool exhausted
+            }
+            auto obj = std::make_unique<T>();
+            T* ptr = obj.get();
+            all.push_back(std::move(obj));
+            return ptr;
+        }
+        
+        auto obj = std::move(available.front());
+        available.pop();
+        T* ptr = obj.get();
+        obj.release();
+        return ptr;
+    }
+    
+    void Release(T* obj) {
+        if (obj) {
+            available.push(std::unique_ptr<T>(obj));
+        }
+    }
+    
+    size_t GetAvailableCount() const { return available.size(); }
+    size_t GetTotalCount() const { return all.size(); }
+    void Clear() {
+        while (!available.empty()) available.pop();
+        all.clear();
+    }
+};
+
+struct MockGameObject {
+    int id;
+    bool active;
+    MockGameObject(int i = 0) : id(i), active(true) {}
+};
+
+class MemoryManagementTest : public ::testing::Test {
+protected:
+    MockObjectPool<MockGameObject> pool;
+    
+    void SetUp() override {
+        pool.Clear();
+    }
+};
+
+TEST_F(MemoryManagementTest, BasicPoolOperations) {
+    auto* obj1 = pool.Acquire();
+    EXPECT_NE(obj1, nullptr);
+    EXPECT_EQ(pool.GetTotalCount(), 1);
+    EXPECT_EQ(pool.GetAvailableCount(), 0);
+    
+    pool.Release(obj1);
+    EXPECT_EQ(pool.GetAvailableCount(), 1);
+    
+    auto* obj2 = pool.Acquire();
+    EXPECT_EQ(obj1, obj2); // Should reuse the same object
+}
+
+TEST_F(MemoryManagementTest, PoolSizeLimit) {
+    std::vector<MockGameObject*> objects;
+    
+    // Fill pool to capacity
+    for (size_t i = 0; i < 50; ++i) {
+        auto* obj = pool.Acquire();
+        EXPECT_NE(obj, nullptr);
+        objects.push_back(obj);
+    }
+    
+    // Should fail to acquire beyond capacity
+    auto* overflowObj = pool.Acquire();
+    EXPECT_EQ(overflowObj, nullptr);
+    
+    // Release all objects
+    for (auto* obj : objects) {
+        pool.Release(obj);
+    }
+    
+    EXPECT_EQ(pool.GetAvailableCount(), 50);
+}
+
+TEST_F(MemoryManagementTest, NullPointerHandling) {
+    pool.Release(nullptr); // Should not crash
+    EXPECT_EQ(pool.GetAvailableCount(), 0);
+}
+
+TEST_F(MemoryManagementTest, MemoryReuse) {
+    // Acquire and release multiple times
+    MockGameObject* objects[10];
+    
+    for (int cycle = 0; cycle < 3; ++cycle) {
+        // Acquire objects
+        for (int i = 0; i < 10; ++i) {
+            objects[i] = pool.Acquire();
+            EXPECT_NE(objects[i], nullptr);
+            objects[i]->id = i + cycle * 10;
+        }
+        
+        // Release objects
+        for (int i = 0; i < 10; ++i) {
+            pool.Release(objects[i]);
+        }
+    }
+    
+    // Pool should have reused objects efficiently
+    EXPECT_LE(pool.GetTotalCount(), 10);
+    EXPECT_EQ(pool.GetAvailableCount(), pool.GetTotalCount());
+}
+
+TEST_F(MemoryManagementTest, SmartPointerUsage) {
+    // Test RAII pattern
+    {
+        auto smartObj = std::make_unique<MockGameObject>(42);
+        EXPECT_EQ(smartObj->id, 42);
+        EXPECT_TRUE(smartObj->active);
+    } // smartObj automatically destroyed here
+    
+    // Test shared ownership
+    std::shared_ptr<MockGameObject> shared1 = std::make_shared<MockGameObject>(100);
+    {
+        std::shared_ptr<MockGameObject> shared2 = shared1;
+        EXPECT_EQ(shared1.use_count(), 2);
+    }
+    EXPECT_EQ(shared1.use_count(), 1);
+}
+
+TEST_F(MemoryManagementTest, VectorMemoryManagement) {
+    std::vector<std::unique_ptr<MockGameObject>> objects;
+    
+    // Add objects
+    for (int i = 0; i < 100; ++i) {
+        objects.push_back(std::make_unique<MockGameObject>(i));
+    }
+    
+    EXPECT_EQ(objects.size(), 100);
+    
+    // Remove every other object
+    objects.erase(
+        std::remove_if(objects.begin(), objects.end(),
+            [](const std::unique_ptr<MockGameObject>& obj) {
+                return obj->id % 2 == 0;
+            }),
+        objects.end()
+    );
+    
+    EXPECT_EQ(objects.size(), 50);
+    
+    // Verify remaining objects are odd-numbered
+    for (const auto& obj : objects) {
+        EXPECT_EQ(obj->id % 2, 1);
+    }
+}
+
+TEST_F(MemoryManagementTest, MemoryLeakPrevention) {
+    // Test that objects are properly cleaned up
+    size_t initialCount = pool.GetTotalCount();
+    
+    {
+        std::vector<MockGameObject*> tempObjects;
+        for (int i = 0; i < 10; ++i) {
+            tempObjects.push_back(pool.Acquire());
+        }
+        
+        // Release all objects before scope ends
+        for (auto* obj : tempObjects) {
+            pool.Release(obj);
+        }
+    }
+    
+    // Pool should have same number of available objects
+    EXPECT_EQ(pool.GetAvailableCount(), pool.GetTotalCount() - initialCount);
+}
