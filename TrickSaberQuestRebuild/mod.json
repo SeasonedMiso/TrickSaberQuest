@@ -35,8 +35,7 @@
     "libbeatsaber-hook_5_1_9.so",
     "libcustom-types.so",
     "libbsml.so",
-    "libpaperlog.so",
-    "libsl2.so"
+    "libpaperlog.so"
   ],
   "fileCopies": []
 }

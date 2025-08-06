@@ -74,12 +74,9 @@ endif()
 include(extern.cmake)
 
 # Enable testing and include GTest
-option(BUILD_TESTS "Build unit tests" OFF)
 option(BUILD_HOST_TESTS "Build host-native tests for macOS" OFF)
 
-if(BUILD_TESTS AND ANDROID)
-    include(cmake/gtest.cmake)
-elseif(BUILD_HOST_TESTS)
+if(BUILD_HOST_TESTS)
     include(cmake/host-tests.cmake)
 endif()
 
