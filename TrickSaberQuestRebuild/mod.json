@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/Lauriethefish/QuestPatcher.QMod/main/QuestPatcher.QMod/Resources/qmod.schema.json",
-  "_QPVersion": "0.1.1",
+  "modloader": "Scotland2",
   "name": "TrickSaber",
   "id": "tricksaber",
   "author": "SeasonedMiso",
@@ -23,19 +23,10 @@
       "id": "bsml",
       "version": "^0.4.43",
       "downloadIfMissing": "https://github.com/QuestPackageManager/bs-cordl/releases/download/v3700.0.0/bsml.qmod"
-    },
-    {
-      "id": "paper",
-      "version": "^3.6.3",
-      "downloadIfMissing": "https://github.com/QuestPackageManager/bs-cordl/releases/download/v3700.0.0/paper.qmod"
     }
   ],
-  "modFiles": ["libtricksaber.so"],
-  "libraryFiles": [
-    "libbeatsaber-hook_5_1_9.so",
-    "libcustom-types.so",
-    "libbsml.so",
-    "libpaperlog.so"
-  ],
+  "modFiles": [],
+  "lateModFiles": ["libtricksaber.so"],
+  "libraryFiles": [],
   "fileCopies": []
 }
