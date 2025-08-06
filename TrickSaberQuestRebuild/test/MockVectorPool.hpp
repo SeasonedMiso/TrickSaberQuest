@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef HOST_TESTS
+#include "HostMocks.hpp"
+#endif
+
 #include <queue>
 #include <mutex>
 

@@ -132,22 +132,36 @@ pwsh ./scripts/benchmark.ps1 -TestType quick
 
 ##  Testing
 
- **Limited unit testing support** due to Unity/IL2CPP dependencies.
+**Host-native unit tests** now work properly on macOS without Android dependencies.
 
 ### Available Tests
 
 * ✅ Basic C++ logic (data structures, algorithms)
-* ✅ Memory pooling (mocked tests)
+* ✅ Memory pooling with thread safety
+* ✅ Configuration validation
 * ❌ Unity components, custom types, device-dependent tests
 
-Run tests:
+**Run host-native tests:**
 
 ```bash
-./scripts/test.sh --filter "*SimpleConfigTest*"
-./scripts/test.sh --filter "*VectorPoolTest*"
+# Run all tests
+./scripts/test-host.sh
+
+# Run specific test suites
+./scripts/test-host.sh --filter "*SimpleConfigTest*"
+./scripts/test-host.sh --filter "*VectorPoolTest*"
+
+# Clean build and run tests
+./scripts/test-host.sh --clean
 ```
 
-(PowerShell versions available via `test.ps1`)
+**PowerShell versions:**
+
+```powershell
+pwsh ./scripts/test-host.ps1
+pwsh ./scripts/test-host.ps1 -Filter "*SimpleConfigTest*"
+pwsh ./scripts/test-host.ps1 -Clean
+```
 
 ### Manual Integration Tests
 

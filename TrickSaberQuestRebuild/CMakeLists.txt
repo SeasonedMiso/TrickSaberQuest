@@ -75,8 +75,12 @@ include(extern.cmake)
 
 # Enable testing and include GTest
 option(BUILD_TESTS "Build unit tests" OFF)
-if(BUILD_TESTS)
+option(BUILD_HOST_TESTS "Build host-native tests for macOS" OFF)
+
+if(BUILD_TESTS AND ANDROID)
     include(cmake/gtest.cmake)
+elseif(BUILD_HOST_TESTS)
+    include(cmake/host-tests.cmake)
 endif()
 
 add_custom_command(TARGET ${CMAKE_PROJECT_NAME} POST_BUILD

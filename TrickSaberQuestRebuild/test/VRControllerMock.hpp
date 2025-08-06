@@ -1,7 +1,12 @@
 #pragma once
 
+#ifdef HOST_TESTS
+#include "HostMocks.hpp"
+#else
 #include "UnityEngine/Vector3.hpp"
 #include "UnityEngine/Quaternion.hpp"
+#endif
+
 #include <chrono>
 #include <cmath>
 

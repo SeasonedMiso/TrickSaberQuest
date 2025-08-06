@@ -7,50 +7,14 @@ param(
     [String] $Filter = "*"
 )
 
-$ErrorActionPreference = "Stop"
+# Legacy test script - redirects to host-native tests
+Write-Host "Note: Using host-native tests (Android cross-compilation tests not supported)" -ForegroundColor Yellow
+
+$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$HostScript = Join-Path $ScriptDir "test-host.ps1"
 
 if ($Clean.IsPresent) {
-    if (Test-Path -Path "build") {
-        Remove-Item -Path "build" -Force -Recurse
-        Write-Host "Cleaned build directory" -ForegroundColor Green
-    }
-}
-
-# Create build directory
-if (!(Test-Path -Path "build")) {
-    New-Item -ItemType Directory -Path "build" | Out-Null
-}
-
-Push-Location build
-
-try {
-    # Configure with tests enabled
-    Write-Host "Configuring build with tests..." -ForegroundColor Yellow
-    & /opt/homebrew/bin/cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE="Debug" -DBUILD_TESTS=ON ..
-    
-    if ($LASTEXITCODE -ne 0) {
-        throw "CMake configuration failed"
-    }
-
-    # Build tests
-    Write-Host "Building tests..." -ForegroundColor Yellow
-    & /opt/homebrew/bin/cmake --build . --target tricksaber_test
-    
-    if ($LASTEXITCODE -ne 0) {
-        throw "Test build failed"
-    }
-
-    # Run tests
-    Write-Host "Running tests..." -ForegroundColor Yellow
-    & ./tricksaber_test --gtest_filter="$Filter"
-    
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "Some tests failed" -ForegroundColor Red
-        exit 1
-    } else {
-        Write-Host "All tests passed!" -ForegroundColor Green
-    }
-    
-} finally {
-    Pop-Location
+    & $HostScript -Clean -Filter $Filter
+} else {
+    & $HostScript -Filter $Filter
 }

@@ -1,5 +1,7 @@
 # Build outputs
 build/
+build-host-tests/
+host-tests-isolated/
 
 # IDE files
 .vscode/
