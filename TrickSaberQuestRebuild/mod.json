@@ -1,37 +1,30 @@
 {
-  "$schema": "https://raw.githubusercontent.com/Lauriethefish/QuestPatcher.QMod/main/QuestPatcher.QMod/Resources/qmod.schema.json",
-  "modloader": "Scotland2",
+  "_QPVersion": "0.1.3",
   "name": "TrickSaber",
   "id": "tricksaber",
   "author": "SeasonedMiso",
   "version": "0.0.1",
   "packageId": "com.beatgames.beatsaber",
-  "packageVersion": "1.37.0_9999999999",
+  "packageVersion": "1.37.0_9064817954",
   "description": "Perform saber tricks like spinning and throwing with full physics simulation and customizable controls. Port of the popular PC TrickSaber mod.",
   "dependencies": [
     {
       "id": "beatsaber-hook",
       "version": "^5.1.9",
-      "downloadIfMissing": "https://github.com/QuestPackageManager/bs-cordl/releases/download/v3700.0.0/beatsaber-hook.qmod"
+      "downloadIfMissing": "https://github.com/QuestPackageManager/bs-cordl/releases/latest/download/beatsaber-hook.qmod"
     },
     {
       "id": "custom-types",
       "version": "^0.17.10",
-      "downloadIfMissing": "https://github.com/QuestPackageManager/bs-cordl/releases/download/v3700.0.0/custom-types.qmod"
+      "downloadIfMissing": "https://github.com/QuestPackageManager/bs-cordl/releases/latest/download/custom-types.qmod"
     },
     {
       "id": "bsml",
       "version": "^0.4.43",
-      "downloadIfMissing": "https://github.com/QuestPackageManager/bs-cordl/releases/download/v3700.0.0/bsml.qmod"
+      "downloadIfMissing": "https://github.com/QuestPackageManager/bs-cordl/releases/latest/download/bsml.qmod"
     }
   ],
-  "modFiles": [],
-  "lateModFiles": ["libtricksaber.so"],
-  "libraryFiles": [
-    "libbeatsaber-hook_5_1_9.so",
-    "libcustom-types.so",
-    "libbsml.so",
-    "libpaperlog.so"
-  ],
+  "modFiles": ["libtricksaber.so"],
+  "libraryFiles": [],
   "fileCopies": []
 }
