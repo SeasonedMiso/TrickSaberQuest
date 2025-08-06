@@ -100,7 +100,7 @@ namespace TrickSaber::UI {
     void DebugOverlay::CreateOverlay() {
         if (instance) return;
         
-        PaperLogger.debug("Creating DebugOverlay on demand");
+        Logger.debug("Creating DebugOverlay on demand");
         auto* go = UnityEngine::GameObject::New_ctor("TrickSaberDebugOverlay");
         UnityEngine::Object::DontDestroyOnLoad(go);
         go->AddComponent<TrickSaber::UI::DebugOverlay*>();
@@ -168,7 +168,7 @@ namespace TrickSaber::UI {
             float leftVelMag = currentStats.leftSaberVel.get_magnitude();
             float rightVelMag = currentStats.rightSaberVel.get_magnitude();
             
-            PaperLogger.debug("[TRICK_ACTIVE] L_Pos({:.2f},{:.2f},{:.2f}) L_Vel({:.2f},{:.2f},{:.2f})|{:.2f}| L_RotVel({:.1f}°/s) R_Pos({:.2f},{:.2f},{:.2f}) R_Vel({:.2f},{:.2f},{:.2f})|{:.2f}| R_RotVel({:.1f}°/s)",
+            Logger.debug("[TRICK_ACTIVE] L_Pos({:.2f},{:.2f},{:.2f}) L_Vel({:.2f},{:.2f},{:.2f})|{:.2f}| L_RotVel({:.1f}°/s) R_Pos({:.2f},{:.2f},{:.2f}) R_Vel({:.2f},{:.2f},{:.2f})|{:.2f}| R_RotVel({:.1f}°/s)",
                 currentStats.leftSaberPos.x, currentStats.leftSaberPos.y, currentStats.leftSaberPos.z,
                 currentStats.leftSaberVel.x, currentStats.leftSaberVel.y, currentStats.leftSaberVel.z, leftVelMag,
                 currentStats.leftSaberAngularVel,
@@ -182,7 +182,7 @@ namespace TrickSaber::UI {
     // LazyDebugOverlayCreator implementation
     Utils::LazyComponentInitializer LazyDebugOverlayCreator::overlayCreator([]() {
         if (TrickSaber::config.showDebugOverlay) {
-            PaperLogger.debug("Lazy creating DebugOverlay");
+            Logger.debug("Lazy creating DebugOverlay");
             DebugOverlay::CreateOverlay();
         }
     });

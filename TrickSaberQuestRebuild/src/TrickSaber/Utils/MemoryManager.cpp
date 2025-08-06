@@ -21,7 +21,7 @@ void MemoryManager::Initialize() {
     VectorPool::WarmUp();
     
     initialized = true;
-    PaperLogger.info("MemoryManager initialized with object pools");
+    Logger.info("MemoryManager initialized with object pools");
 }
 
 void MemoryManager::Shutdown() {
@@ -32,7 +32,7 @@ void MemoryManager::Shutdown() {
     TransformCache::ClearCache();
     
     initialized = false;
-    PaperLogger.info("MemoryManager shutdown complete");
+    Logger.info("MemoryManager shutdown complete");
 }
 
 std::unique_ptr<TrickCalculation> MemoryManager::GetTrickCalculation() {
@@ -58,7 +58,7 @@ void MemoryManager::ClearAllPools() {
     VectorPool::Clear();
     TransformCache::ClearCache();
     
-    PaperLogger.debug("All memory pools cleared");
+    Logger.debug("All memory pools cleared");
 }
 
 } // namespace TrickSaber::Utils

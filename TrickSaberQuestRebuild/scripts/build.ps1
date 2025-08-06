@@ -29,4 +29,13 @@ if (($clean.IsPresent) -or (-not (Test-Path -Path "build"))) {
 
 & /opt/homebrew/bin/cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE="RelWithDebInfo" -B build
 & /opt/homebrew/bin/cmake --build ./build --config RelWithDebInfo -- -j8 VERBOSE=0
+
+if ($LASTEXITCODE -eq 0) {
+    Write-Output "`nBuild completed successfully!"
+    if (Test-Path "binaries") {
+        Write-Output "`nGenerated QMODs:"
+        Get-ChildItem "binaries/*.qmod" | ForEach-Object { Write-Output "  - $($_.Name)" }
+    }
+}
+
 exit $LASTEXITCODE

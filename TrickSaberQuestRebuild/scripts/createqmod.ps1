@@ -71,23 +71,46 @@ foreach ($lib in $modJson.libraryFiles) {
     $filelist += $path
 }
 
-$zip = "binaries/" + $qmodName + ".zip"
-$qmod = "binaries/" + $qmodName + ".qmod"
-
 # Ensure binaries directory exists
 if (-not (Test-Path "binaries")) {
     New-Item -ItemType Directory -Path "binaries" | Out-Null
 }
 
-# Remove existing qmod if it exists
-if (Test-Path $qmod) {
-    Remove-Item $qmod -Force
+# Get version from mod.json
+$version = $modJson.version
+
+# Create both debug and release versions with version numbers
+$debugQmod = "binaries/" + $qmodName + "_debug_v" + $version + ".qmod"
+$releaseQmod = "binaries/" + $qmodName + "_v" + $version + ".qmod"
+
+# Remove existing qmods if they exist
+if (Test-Path $debugQmod) { Remove-Item $debugQmod -Force }
+if (Test-Path $releaseQmod) { Remove-Item $releaseQmod -Force }
+
+# Create debug version (unstripped)
+Compress-Archive -Path $filelist -DestinationPath ($debugQmod -replace "\.qmod$", ".zip") -Force
+Move-Item ($debugQmod -replace "\.qmod$", ".zip") $debugQmod -Force
+
+# Create stripped version for release
+$strippedFiles = @()
+foreach ($file in $filelist) {
+    if ($file -like "*build/*.so") {
+        $strippedFile = $file -replace "\.so$", "_stripped.so"
+        if (Test-Path $strippedFile) {
+            $strippedFiles += $strippedFile
+        } else {
+            $strippedFiles += $file
+        }
+    } else {
+        $strippedFiles += $file
+    }
 }
 
-Compress-Archive -Path $filelist -DestinationPath $zip -Force
-Move-Item $zip $qmod -Force
+Compress-Archive -Path $strippedFiles -DestinationPath ($releaseQmod -replace "\.qmod$", ".zip") -Force
+Move-Item ($releaseQmod -replace "\.qmod$", ".zip") $releaseQmod -Force
 
-Write-Output "Created: $qmod"
+Write-Output "Created debug version: $debugQmod"
+Write-Output "Created release version: $releaseQmod"
 Write-Output "Contents:"
 foreach ($file in $filelist) {
     Write-Output "  - $(Split-Path $file -Leaf)"

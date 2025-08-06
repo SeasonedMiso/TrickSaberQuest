@@ -46,3 +46,13 @@ fi
 
 /opt/homebrew/bin/cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE="RelWithDebInfo" -B build
 /opt/homebrew/bin/cmake --build ./build --config RelWithDebInfo -- -j8 VERBOSE=0
+
+if [ $? -eq 0 ]; then
+    echo ""
+    echo "Build completed successfully!"
+    if [ -d "binaries" ]; then
+        echo ""
+        echo "Generated QMODs:"
+        ls -1 binaries/*.qmod 2>/dev/null | sed 's/.*\///; s/^/  - /' || echo "  No QMODs found"
+    fi
+fi

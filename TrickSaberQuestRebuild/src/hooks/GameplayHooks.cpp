@@ -182,12 +182,12 @@ MAKE_HOOK_MATCH(AudioTimeSyncController_Update, &GlobalNamespace::AudioTimeSyncC
 }
 
 void InstallGameplayHooks() {
-    INSTALL_HOOK(PaperLogger, BeatmapObjectSpawnController_HandleNoteDataCallback);
-    INSTALL_HOOK(PaperLogger, BeatmapObjectManager_HandleNoteControllerNoteWasCut);
-    INSTALL_HOOK(PaperLogger, BeatmapObjectManager_HandleNoteControllerNoteWasMissed);
-    INSTALL_HOOK(PaperLogger, GamePause_Pause);
-    INSTALL_HOOK(PaperLogger, GamePause_Resume);
-    INSTALL_HOOK(PaperLogger, OculusVRHelper_FixedUpdate);
-    INSTALL_HOOK(PaperLogger, AudioTimeSyncController_Update);
-    PaperLogger.info("Gameplay hooks installed");
+    INSTALL_HOOK(Logger, BeatmapObjectSpawnController_HandleNoteDataCallback);
+    INSTALL_HOOK(Logger, BeatmapObjectManager_HandleNoteControllerNoteWasCut);
+    INSTALL_HOOK(Logger, BeatmapObjectManager_HandleNoteControllerNoteWasMissed);
+    INSTALL_HOOK(Logger, GamePause_Pause);
+    INSTALL_HOOK(Logger, GamePause_Resume);
+    INSTALL_HOOK(Logger, OculusVRHelper_FixedUpdate);
+    INSTALL_HOOK(Logger, AudioTimeSyncController_Update);
+    Logger.info("Gameplay hooks installed");
 }

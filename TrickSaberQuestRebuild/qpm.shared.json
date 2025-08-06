@@ -1,14 +1,14 @@
 {
   "$schema": "https://raw.githubusercontent.com/QuestPackageManager/QPM.Package/refs/heads/main/qpm.shared.schema.json",
   "config": {
-    "version": "0.1.0",
+    "version": "0.0.1",
     "sharedDir": "shared",
     "dependenciesDir": "extern",
     "info": {
       "name": "TrickSaber",
       "id": "tricksaber",
-      "version": "0.1.0",
-      "url": "https://github.com/ToniMacaroni/TrickSaber",
+      "version": "0.0.1",
+      "url": "https://github.com/SeasonedMiso/TrickSaberQuest",
       "additionalData": {
         "overrideSoName": "libtricksaber.so",
         "cmake": true
@@ -47,7 +47,7 @@
         "./extern/libs"
       ],
       "qmodIncludeFiles": [],
-      "qmodOutput": "./TrickSaber.qmod"
+      "qmodOutput": "./binaries/TrickSaber.qmod"
     },
     "dependencies": [
       {
@@ -57,14 +57,14 @@
       },
       {
         "id": "scotland2",
-        "versionRange": "^0.1.4",
+        "versionRange": "^0.1.6",
         "additionalData": {
           "includeQmod": false
         }
       },
       {
-        "id": "paper",
-        "versionRange": "^3.6.3",
+        "id": "paper2_scotland2",
+        "versionRange": "^4.6.4",
         "additionalData": {}
       },
       {
@@ -80,6 +80,11 @@
       {
         "id": "bsml",
         "versionRange": "^0.4.43",
+        "additionalData": {}
+      },
+      {
+        "id": "paper",
+        "versionRange": "^3.7.0",
         "additionalData": {}
       }
     ]
@@ -104,6 +109,25 @@
         }
       },
       "version": "0.17.10"
+    },
+    {
+      "dependency": {
+        "id": "paper2_scotland2",
+        "versionRange": "=4.6.4",
+        "additionalData": {
+          "soLink": "https://github.com/Fernthedev/paperlog/releases/download/v4.6.4/libpaper2_scotland2.so",
+          "overrideSoName": "libpaper2_scotland2.so",
+          "modLink": "https://github.com/Fernthedev/paperlog/releases/download/v4.6.4/paper2_scotland2.qmod",
+          "branchName": "version/v4_6_4",
+          "compileOptions": {
+            "systemIncludes": [
+              "shared/utfcpp/source"
+            ]
+          },
+          "cmake": false
+        }
+      },
+      "version": "4.6.4"
     },
     {
       "dependency": {

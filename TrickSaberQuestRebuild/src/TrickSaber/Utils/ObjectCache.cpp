@@ -6,7 +6,7 @@ using namespace TrickSaber::Utils;
 // Static member definitions
 LazyInitializer<std::unordered_map<std::type_index, ObjectCache::CacheEntry>> ObjectCache::lazyCache(
     []() -> std::unique_ptr<std::unordered_map<std::type_index, ObjectCache::CacheEntry>> {
-        PaperLogger.debug("Initializing ObjectCache on first access");
+        Logger.debug("Initializing ObjectCache on first access");
         return std::make_unique<std::unordered_map<std::type_index, ObjectCache::CacheEntry>>();
     }
 );
@@ -19,7 +19,7 @@ bool ObjectCache::IsObjectValid(UnityEngine::Object* obj) {
 void ObjectCache::InitializeCache() {
     // Force initialization of lazy cache
     lazyCache.Get();
-    PaperLogger.debug("ObjectCache initialized");
+    Logger.debug("ObjectCache initialized");
 }
 
 void ObjectCache::CleanupExpiredEntries() {
@@ -41,7 +41,7 @@ void ObjectCache::CleanupExpiredEntries() {
     }
     
     if (removedCount > 0) {
-        PaperLogger.debug("ObjectCache cleaned {} expired entries", removedCount);
+        Logger.debug("ObjectCache cleaned {} expired entries", removedCount);
     }
 }
 
@@ -77,7 +77,7 @@ void ObjectCache::ClearCache() {
     auto& cache = lazyCache.GetMutable();
     size_t clearedCount = cache.size();
     cache.clear();
-    PaperLogger.debug("ObjectCache cleared {} entries", clearedCount);
+    Logger.debug("ObjectCache cleared {} entries", clearedCount);
 }
 
 size_t ObjectCache::GetCacheSize() {
@@ -93,7 +93,7 @@ bool ObjectCache::IsCacheInitialized() {
 
 // LazyCacheWarmer implementation
 LazyComponentInitializer LazyCacheWarmer::warmer([]() {
-    PaperLogger.debug("Warming ObjectCache with commonly used objects");
+    Logger.debug("Warming ObjectCache with commonly used objects");
     
     // Warm cache with essential objects
     ObjectCache::GetAudioController();
@@ -102,7 +102,7 @@ LazyComponentInitializer LazyCacheWarmer::warmer([]() {
     ObjectCache::GetGameScenesManager();
     ObjectCache::GetPauseController();
     
-    PaperLogger.debug("ObjectCache warming completed");
+    Logger.debug("ObjectCache warming completed");
 });
 
 void LazyCacheWarmer::WarmCache() {

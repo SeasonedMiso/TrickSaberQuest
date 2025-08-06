@@ -6,6 +6,6 @@
 namespace TrickSaber {
     // Placeholder for enhanced input integration
     void InitializeEnhancedInput() {
-        PaperLogger.debug("Enhanced input integration available");
+        Logger.debug("Enhanced input integration available");
     }
 }

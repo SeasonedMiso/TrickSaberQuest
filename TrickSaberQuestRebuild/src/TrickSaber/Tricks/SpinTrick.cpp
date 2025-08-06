@@ -18,7 +18,7 @@ bool SpinTrick::StartTrick(float value) {
     if (!Trick::StartTrick(value)) return false;
     
     if (!saberTrickModel || !saberTrickModel->saber) {
-        PaperLogger.error("SpinTrick: Missing saber or trick model");
+        Logger.error("SpinTrick: Missing saber or trick model");
         return false;
     }
     
@@ -40,7 +40,7 @@ bool SpinTrick::StartTrick(float value) {
             TrickSaber::Utils::HapticFeedbackHelper::HapticType::SpinStart);
     }
     
-    PaperLogger.debug("SpinTrick started with value: {:.2f}, target speed: {:.1f}", value, targetSpinSpeed);
+    Logger.debug("SpinTrick started with value: {:.2f}, target speed: {:.1f}", value, targetSpinSpeed);
     return true;
 }
 
@@ -193,13 +193,13 @@ void SpinTrick::EndTrick() {
             }
             
             currentSpinSpeed = largestSpinSpeed;
-            PaperLogger.debug("SpinTrick: Starting complete rotation mode with speed {:.1f}", largestSpinSpeed);
+            Logger.debug("SpinTrick: Starting complete rotation mode with speed {:.1f}", largestSpinSpeed);
             return;
         } else if (UnityEngine::Mathf::Abs(currentSpinSpeed) > 60.0f) {
             // Gradual stop for smooth transition
             state = SpinState::Stopping;
             targetSpinSpeed = 0.0f;
-            PaperLogger.debug("SpinTrick: Starting gradual stop");
+            Logger.debug("SpinTrick: Starting gradual stop");
             return;
         }
     }
@@ -224,7 +224,7 @@ void SpinTrick::EndTrick() {
     }
     
     Trick::EndTrick();
-    PaperLogger.debug("SpinTrick ended");
+    Logger.debug("SpinTrick ended");
 }
 
 void SpinTrick::EndTrickImmediately() {
@@ -240,7 +240,7 @@ void SpinTrick::EndTrickImmediately() {
     }
     
     Trick::EndTrick();
-    PaperLogger.debug("SpinTrick ended immediately");
+    Logger.debug("SpinTrick ended immediately");
 }
 
 void SpinTrick::LerpToOriginalRotation(float deltaTime) {

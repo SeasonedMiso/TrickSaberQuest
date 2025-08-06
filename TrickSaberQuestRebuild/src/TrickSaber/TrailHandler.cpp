@@ -13,7 +13,7 @@ void TrailHandler::Initialize(GlobalNamespace::Saber* saber) {
     if (saber) {
         auto saberManager = Utils::ObjectCache::GetSaberManager();
         if (saberManager) {
-            PaperLogger.debug("TrailHandler initialized with cached SaberManager");
+            Logger.debug("TrailHandler initialized with cached SaberManager");
         }
     }
 }

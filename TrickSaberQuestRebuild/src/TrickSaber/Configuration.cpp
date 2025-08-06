@@ -24,7 +24,7 @@ namespace TrickSaber::Configuration {
         TrickSaber::config.spinMode = config.spinMode;
         TrickSaber::config.throwMode = config.throwMode;
         
-        PaperLogger.info("TrickSaber configuration initialized with full PC parity and mode switching");
+        Logger.info("TrickSaber configuration initialized with full PC parity and mode switching");
     }
     
     // Core accessors
@@ -78,7 +78,7 @@ namespace TrickSaber::Configuration {
             default:
                 break;
         }
-        PaperLogger.info("Trick {} {}", static_cast<int>(action), enabled ? "enabled" : "disabled");
+        Logger.info("Trick {} {}", static_cast<int>(action), enabled ? "enabled" : "disabled");
     }
     
     void SetInputThreshold(int inputType, float threshold) {
@@ -99,7 +99,7 @@ namespace TrickSaber::Configuration {
             default:
                 break;
         }
-        PaperLogger.info("Input threshold {} set to {:.2f}", inputType, threshold);
+        Logger.info("Input threshold {} set to {:.2f}", inputType, threshold);
     }
     
     void SetInputBinding(int inputType, TrickAction action) {
@@ -116,14 +116,14 @@ namespace TrickSaber::Configuration {
             default:
                 break;
         }
-        PaperLogger.info("Input {} bound to trick {}", inputType, static_cast<int>(action));
+        Logger.info("Input {} bound to trick {}", inputType, static_cast<int>(action));
     }
     
     void SetSpinSettings(bool velocityDependent, float speed, SpinDir direction) {
         config.isSpeedVelocityDependent = velocityDependent;
         config.spinSpeed = std::clamp(speed, 0.1f, 5.0f);
         config.spinDirection = direction;
-        PaperLogger.info("Spin settings updated: velocity-dependent={}, speed={:.1f}, direction={}", 
+        Logger.info("Spin settings updated: velocity-dependent={}, speed={:.1f}, direction={}", 
             velocityDependent, speed, static_cast<int>(direction));
     }
     
@@ -133,7 +133,7 @@ namespace TrickSaber::Configuration {
         config.throwVelocityMultiplier = velocity;
         TrickSaber::config.throwVelocityMultiplier = velocity;
         TrickSaber::config.returnSpeed = returnSpeed;
-        PaperLogger.info("Throw settings updated: velocity={:.1f}, return speed={:.1f}", velocity, returnSpeed);
+        Logger.info("Throw settings updated: velocity={:.1f}, return speed={:.1f}", velocity, returnSpeed);
     }
     
     void SetAdvancedFeature(const std::string& feature, bool enabled) {
@@ -147,27 +147,27 @@ namespace TrickSaber::Configuration {
         } else if (feature == "completeRotationMode") {
             config.completeRotationMode = enabled;
         }
-        PaperLogger.info("Advanced feature '{}' {}", Utils::SanitizeForLog(feature), enabled ? "enabled" : "disabled");
+        Logger.info("Advanced feature '{}' {}", Utils::SanitizeForLog(feature), enabled ? "enabled" : "disabled");
     }
     
     bool IsSimplifiedInputEnabled() { return config.useSimplifiedInput; }
     
     void SetSimplifiedInput(bool enabled) {
         config.useSimplifiedInput = enabled;
-        PaperLogger.info("Input mode switched to: {}", enabled ? "Simplified" : "PC Complex");
+        Logger.info("Input mode switched to: {}", enabled ? "Simplified" : "PC Complex");
     }
     
     // Mode switching implementations
     void SetSpinMode(SpinMode mode) {
         config.spinMode = mode;
         TrickSaber::config.spinMode = mode;
-        PaperLogger.info("Spin mode set to: {}", static_cast<int>(mode));
+        Logger.info("Spin mode set to: {}", static_cast<int>(mode));
     }
     
     void SetThrowMode(ThrowMode mode) {
         config.throwMode = mode;
         TrickSaber::config.throwMode = mode;
-        PaperLogger.info("Throw mode set to: {}", static_cast<int>(mode));
+        Logger.info("Throw mode set to: {}", static_cast<int>(mode));
     }
     
     SpinMode GetSpinMode() { return config.spinMode; }

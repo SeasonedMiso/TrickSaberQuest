@@ -48,7 +48,7 @@ namespace TrickSaber::Core {
     }
 
     void StateManager::Reset() {
-        PaperLogger.debug("Resetting StateManager");
+        Logger.debug("Resetting StateManager");
         
         saberManager = nullptr;
         leftSaber = nullptr;
@@ -62,6 +62,6 @@ namespace TrickSaber::Core {
         BurnMarkHandler::ClearCache();
         MovementController::ClearBuffers();
         
-        PaperLogger.debug("StateManager reset completed");
+        Logger.debug("StateManager reset completed");
     }
 }

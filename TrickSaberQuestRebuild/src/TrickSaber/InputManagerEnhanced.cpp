@@ -73,20 +73,20 @@ void InputManagerEnhanced::Update() {
             CheckInputs();
         }
     } catch (const std::bad_alloc& e) {
-        PaperLogger.error("Memory allocation failed in InputManagerEnhanced::Update: {}", e.what());
+        Logger.error("Memory allocation failed in InputManagerEnhanced::Update: {}", e.what());
         // Reset input states to prevent memory issues
         triggerState = {};
         gripState = {};
         thumbstickState = {};
     } catch (const std::runtime_error& e) {
-        PaperLogger.error("Runtime error in InputManagerEnhanced::Update: {}", e.what());
+        Logger.error("Runtime error in InputManagerEnhanced::Update: {}", e.what());
         // Log controller state for debugging
-        PaperLogger.error("Controller connected: {}, enabled: {}", 
+        Logger.error("Controller connected: {}, enabled: {}", 
             wasConnected, controller ? controller->get_enabled() : false);
     } catch (const std::exception& e) {
-        PaperLogger.error("Exception in InputManagerEnhanced::Update: {}", e.what());
+        Logger.error("Exception in InputManagerEnhanced::Update: {}", e.what());
     } catch (...) {
-        PaperLogger.error("Unknown error in InputManagerEnhanced::Update - resetting input states");
+        Logger.error("Unknown error in InputManagerEnhanced::Update - resetting input states");
         // Reset states as recovery measure
         triggerState.pressed = false;
         gripState.pressed = false;
@@ -96,7 +96,7 @@ void InputManagerEnhanced::Update() {
 
 void InputManagerEnhanced::Initialize(GlobalNamespace::VRController* vrController, GlobalNamespace::SaberType saberType) {
     if (!vrController) {
-        PaperLogger.error("VRController is null in InputManagerEnhanced::Initialize");
+        Logger.error("VRController is null in InputManagerEnhanced::Initialize");
         return;
     }
     
@@ -107,7 +107,7 @@ void InputManagerEnhanced::Initialize(GlobalNamespace::VRController* vrControlle
     ovrController = (saberType == GlobalNamespace::SaberType::SaberA) ? 
         OVRInput::Controller::LTouch : OVRInput::Controller::RTouch;
     
-    PaperLogger.info("InputManagerEnhanced initialized for {} saber", 
+    Logger.info("InputManagerEnhanced initialized for {} saber", 
         saberType == GlobalNamespace::SaberType::SaberA ? "left" : "right");
 }
 
@@ -173,15 +173,15 @@ void InputManagerEnhanced::CheckEnhancedInput(std::function<bool(float&)> getVal
         }
         
     } catch (const std::runtime_error& e) {
-        PaperLogger.error("Runtime error checking input for action {}: {}", static_cast<int>(action), e.what());
+        Logger.error("Runtime error checking input for action {}: {}", static_cast<int>(action), e.what());
         state.pressed = false;
         state.lastChangeTime = std::chrono::steady_clock::now();
     } catch (const std::exception& e) {
-        PaperLogger.error("Exception checking input for action {}: {}", static_cast<int>(action), e.what());
+        Logger.error("Exception checking input for action {}: {}", static_cast<int>(action), e.what());
         state.pressed = false;
         state.lastChangeTime = std::chrono::steady_clock::now();
     } catch (...) {
-        PaperLogger.error("Unknown error checking enhanced input for action {} - resetting state", static_cast<int>(action));
+        Logger.error("Unknown error checking enhanced input for action {} - resetting state", static_cast<int>(action));
         state.pressed = false;
         state.lastChangeTime = std::chrono::steady_clock::now();
     }
@@ -203,7 +203,7 @@ bool InputManagerEnhanced::GetTriggerValue(float& value) {
         
         return value >= Configuration::GetTriggerThreshold();
     } catch (const std::exception& e) {
-        PaperLogger.debug("Exception getting trigger value: {}", e.what());
+        Logger.debug("Exception getting trigger value: {}", e.what());
         value = 0.0f;
         return false;
     } catch (...) {
@@ -228,7 +228,7 @@ bool InputManagerEnhanced::GetGripValue(float& value) {
         
         return value >= Configuration::GetTriggerThreshold();
     } catch (const std::exception& e) {
-        PaperLogger.debug("Exception getting grip value: {}", e.what());
+        Logger.debug("Exception getting grip value: {}", e.what());
         value = 0.0f;
         return false;
     } catch (...) {
@@ -261,7 +261,7 @@ bool InputManagerEnhanced::GetThumbstickValue(float& value) {
         return std::abs(value) >= Configuration::GetThumbstickThreshold();
         
     } catch (const std::exception& e) {
-        PaperLogger.debug("Exception getting thumbstick value: {}", e.what());
+        Logger.debug("Exception getting thumbstick value: {}", e.what());
         value = 0.0f;
         return false;
     } catch (...) {
@@ -284,7 +284,7 @@ UnityEngine::Vector2 InputManagerEnhanced::GetThumbstickVector2() const {
         
         return stick;
     } catch (const std::exception& e) {
-        PaperLogger.debug("Exception getting thumbstick vector: {}", e.what());
+        Logger.debug("Exception getting thumbstick vector: {}", e.what());
         return UnityEngine::Vector2::get_zero();
     } catch (...) {
         return UnityEngine::Vector2::get_zero();
@@ -320,7 +320,7 @@ bool InputManagerEnhanced::IsControllerDetected() const {
 
 void InputManagerEnhanced::HandleControllerConnectionChange(bool connected) {
     if (connected && !wasConnected) {
-        PaperLogger.info("Enhanced controller {} connected", 
+        Logger.info("Enhanced controller {} connected", 
             saberType == 0 ? "left" : "right");
         
         // Reset enhanced input states
@@ -334,7 +334,7 @@ void InputManagerEnhanced::HandleControllerConnectionChange(bool connected) {
         thumbstickState.lastChangeTime = now;
         
     } else if (!connected && wasConnected) {
-        PaperLogger.warn("Enhanced controller {} disconnected", 
+        Logger.warn("Enhanced controller {} disconnected", 
             saberType == 0 ? "left" : "right");
         
         // End active tricks
@@ -357,7 +357,7 @@ void InputManagerEnhanced::HandleControllerConnectionChange(bool connected) {
 
 #ifdef DEBUG
 void InputManagerEnhanced::LogInputDiagnostics(const EnhancedInputState& state, TrickAction action, float value) {
-    PaperLogger.debug("Input {} - Action: {}, Value: {:.3f}, Smoothed: {:.3f}, State: {}", 
+    Logger.debug("Input {} - Action: {}, Value: {:.3f}, Smoothed: {:.3f}, State: {}", 
         saberType == 0 ? "L" : "R",
         static_cast<int>(action),
         state.lastValue,

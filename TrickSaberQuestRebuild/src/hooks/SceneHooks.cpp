@@ -45,8 +45,8 @@ MAKE_HOOK_MATCH(SceneManager_Internal_SceneLoaded, &UnityEngine::SceneManagement
 }
 
 void InstallSceneHooks() {
-    INSTALL_HOOK(PaperLogger, SceneManager_Internal_ActiveSceneChanged);
-    INSTALL_HOOK(PaperLogger, SceneManager_SetActiveScene);
-    INSTALL_HOOK(PaperLogger, SceneManager_Internal_SceneLoaded);
-    PaperLogger.info("Scene hooks installed");
+    INSTALL_HOOK(Logger, SceneManager_Internal_ActiveSceneChanged);
+    INSTALL_HOOK(Logger, SceneManager_SetActiveScene);
+    INSTALL_HOOK(Logger, SceneManager_Internal_SceneLoaded);
+    Logger.info("Scene hooks installed");
 }

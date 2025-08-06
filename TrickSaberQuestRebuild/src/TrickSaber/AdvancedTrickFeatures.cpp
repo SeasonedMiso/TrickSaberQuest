@@ -9,7 +9,7 @@ AdvancedTrickFeatures* AdvancedTrickFeatures::instance = nullptr;
 
 void AdvancedTrickFeatures::Awake() {
     instance = this;
-    PaperLogger.info("AdvancedTrickFeatures initialized");
+    Logger.info("AdvancedTrickFeatures initialized");
 }
 
 void AdvancedTrickFeatures::Update() {

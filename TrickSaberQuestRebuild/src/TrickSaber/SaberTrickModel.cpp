@@ -33,10 +33,10 @@ void SaberTrickModel::Initialize(GlobalNamespace::Saber* saber) {
             // Initially disable trick model
             trickModel->SetActive(false);
             
-            PaperLogger.debug("SaberTrickModel initialized with physics for {} saber", 
+            Logger.debug("SaberTrickModel initialized with physics for {} saber", 
                 saber->get_saberType() == GlobalNamespace::SaberType::SaberA ? "left" : "right");
         } else {
-            PaperLogger.error("Failed to get saber transform in SaberTrickModel::Initialize");
+            Logger.error("Failed to get saber transform in SaberTrickModel::Initialize");
         }
     }
     usingTrickModel = false;
@@ -68,7 +68,7 @@ void SaberTrickModel::ChangeToActualSaber() {
     saberTransform->set_localRotation(originalRotation);
     
     usingTrickModel = false;
-    PaperLogger.debug("Switched to actual saber");
+    Logger.debug("Switched to actual saber");
 }
 
 void SaberTrickModel::ChangeToTrickModel() {
@@ -88,7 +88,7 @@ void SaberTrickModel::ChangeToTrickModel() {
     }
     
     usingTrickModel = true;
-    PaperLogger.debug("Switched to trick model");
+    Logger.debug("Switched to trick model");
 }
 
 UnityEngine::Transform* SaberTrickModel::GetSaberTransform() {
@@ -128,7 +128,7 @@ void SaberTrickModel::CopySaberAppearance() {
                 if (materials && materials->get_Length() > 0) {
                     trickMeshRenderer->set_material(materials->_values[0]);
                 }
-                PaperLogger.debug("Copied saber appearance to trick model");
+                Logger.debug("Copied saber appearance to trick model");
             }
         }
     }
@@ -146,7 +146,7 @@ void SaberTrickModel::AddRigidbody() {
         rigidbody->set_interpolation(UnityEngine::RigidbodyInterpolation::Interpolate);
         rigidbody->set_mass(0.1f); // Light weight for responsive physics
         
-        PaperLogger.debug("Rigidbody added to trick model with PC parity settings");
+        Logger.debug("Rigidbody added to trick model with PC parity settings");
     }
 }
 

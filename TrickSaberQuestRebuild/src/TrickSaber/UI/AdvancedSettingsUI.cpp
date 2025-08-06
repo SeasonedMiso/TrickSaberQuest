@@ -199,7 +199,7 @@ void AdvancedSettingsUI::DidActivate(bool firstActivation, bool addedToHierarchy
             });
         
         uiInitialized = true;
-        PaperLogger.info("Advanced TrickSaber UI initialized with complete mode switching");
+        Logger.info("Advanced TrickSaber UI initialized with complete mode switching");
     }
 }
 

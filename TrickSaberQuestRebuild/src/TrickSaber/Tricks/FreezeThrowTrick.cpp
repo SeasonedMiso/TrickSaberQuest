@@ -62,7 +62,7 @@ void FreezeThrowTrick::OnTrickStart() {
         }
     }
     
-    PaperLogger.debug("Freeze throw trick started at position: ({:.2f}, {:.2f}, {:.2f})", 
+    Logger.debug("Freeze throw trick started at position: ({:.2f}, {:.2f}, {:.2f})", 
         frozenPosition.x, frozenPosition.y, frozenPosition.z);
 }
 
@@ -84,11 +84,11 @@ void FreezeThrowTrick::OnTrickEndImmediately() {
     }
     
     active = false;
-    PaperLogger.debug("Freeze throw trick ended immediately");
+    Logger.debug("Freeze throw trick ended immediately");
 }
 
 void FreezeThrowTrick::OnInit() {
-    PaperLogger.debug("Freeze throw trick initialized");
+    Logger.debug("Freeze throw trick initialized");
 }
 
 void FreezeThrowTrick::FreezeSaber() {
@@ -168,5 +168,5 @@ custom_types::Helpers::Coroutine FreezeThrowTrick::ReturnSaber() {
     
     UnfreezeSaber();
     active = false;
-    PaperLogger.debug("Freeze throw trick return completed");
+    Logger.debug("Freeze throw trick return completed");
 }

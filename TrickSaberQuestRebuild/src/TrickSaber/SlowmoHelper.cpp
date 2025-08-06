@@ -2,57 +2,52 @@
 #include "TrickSaber/Config.hpp"
 #include "TrickSaber/LogSanitizer.hpp"
 #include "main.hpp"
+#include <algorithm>
 
 namespace TrickSaber {
     
-    class SlowmoHelper {
-    public:
-        // Enable slowmo with default settings
-        static void EnableSlowmo() {
+    namespace SlowmoHelper {
+        
+        void EnableSlowmo() {
             Configuration::SetAdvancedFeature("slowmoDuringThrow", true);
-            PaperLogger.info("Slowmo enabled for throw tricks");
+            Logger.info("Slowmo enabled for throw tricks");
         }
         
-        // Disable slowmo
-        static void DisableSlowmo() {
+        void DisableSlowmo() {
             Configuration::SetAdvancedFeature("slowmoDuringThrow", false);
-            PaperLogger.info("Slowmo disabled");
+            Logger.info("Slowmo disabled");
         }
         
-        // Set custom slowmo amount (0.1f = 90% speed, 0.5f = 50% speed)
-        static void SetSlowmoAmount(float amount) {
+        void SetSlowmoAmount(float amount) {
             amount = std::clamp(amount, 0.1f, 0.9f);
             config.slowmoAmount = amount;
-            PaperLogger.info("Slowmo amount set to {:.1f} ({:.0f}% speed)", 
+            Logger.info("Slowmo amount set to {:.1f} ({:.0f}% speed)", 
                 amount, (1.0f - amount) * 100.0f);
         }
         
-        // Quick preset configurations
-        static void SetSlowmoPreset(const std::string& preset) {
+        void SetSlowmoPreset(const std::string& preset) {
             if (preset == "subtle") {
                 EnableSlowmo();
-                SetSlowmoAmount(0.1f); // 90% speed
+                SetSlowmoAmount(0.1f);
             } else if (preset == "moderate") {
                 EnableSlowmo();
-                SetSlowmoAmount(0.2f); // 80% speed
+                SetSlowmoAmount(0.2f);
             } else if (preset == "dramatic") {
                 EnableSlowmo();
-                SetSlowmoAmount(0.4f); // 60% speed
+                SetSlowmoAmount(0.4f);
             } else if (preset == "extreme") {
                 EnableSlowmo();
-                SetSlowmoAmount(0.6f); // 40% speed
+                SetSlowmoAmount(0.6f);
             }
-            PaperLogger.info("Slowmo preset '{}' applied", Utils::SanitizeForLog(preset));
+            Logger.info("Slowmo preset '{}' applied", Utils::SanitizeForLog(preset));
         }
         
-        // Check if slowmo is currently enabled
-        static bool IsSlowmoEnabled() {
+        bool IsSlowmoEnabled() {
             return Configuration::IsSlowmoDuringThrow();
         }
         
-        // Get current slowmo amount
-        static float GetSlowmoAmount() {
+        float GetSlowmoAmount() {
             return Configuration::GetSlowmoAmount();
         }
-    };
+    }
 }

@@ -68,22 +68,22 @@ std::optional<T> SafeExecuteWithReturn(const std::function<T()>& func, const cha
     try {
         return func();
     } catch (const std::bad_alloc& e) {
-        PaperLogger.error("Memory allocation failed in {}: {}", context, e.what());
+        Logger.error("Memory allocation failed in {}: {}", context, e.what());
         System::GC::Collect();
         TrickSaber::Utils::ObjectCache::ClearCache();
         TrickSaber::Utils::MemoryManager::ClearAllPools();
         return std::nullopt;
     } catch (const std::runtime_error& e) {
-        PaperLogger.error("Runtime error in {}: {}", context, e.what());
+        Logger.error("Runtime error in {}: {}", context, e.what());
         return std::nullopt;
     } catch (const std::logic_error& e) {
-        PaperLogger.error("Logic error in {}: {}", context, e.what());
+        Logger.error("Logic error in {}: {}", context, e.what());
         return std::nullopt;
     } catch (const std::exception& e) {
-        PaperLogger.error("Standard exception in {}: {}", context, e.what());
+        Logger.error("Standard exception in {}: {}", context, e.what());
         return std::nullopt;
     } catch (...) {
-        PaperLogger.error("Unknown exception in {}", context);
+        Logger.error("Unknown exception in {}", context);
         return std::nullopt;
     }
 }
@@ -131,7 +131,7 @@ void ValidateCacheIfNeeded() {
         
         if (validationCounter % 10 == 0) {  // Reduce debug frequency
             size_t cacheSize = TrickSaber::Utils::ObjectCache::GetCacheSize();
-            PaperLogger.debug("Cache validated - size: {}, load: {:.1f}x, interval: {:.1f}s", 
+            Logger.debug("Cache validated - size: {}, load: {:.1f}x, interval: {:.1f}s", 
                 cacheSize, loadFactor, adaptiveInterval);
         }
         
@@ -144,7 +144,7 @@ bool SafeExecute(const std::function<void()>& func, const char* context) {
     static TrickSaber::Utils::ErrorCircuitBreaker circuitBreaker;
     
     if (!circuitBreaker.ShouldExecute()) {
-        PaperLogger.debug("Circuit breaker open for {}, skipping execution", context);
+        Logger.debug("Circuit breaker open for {}, skipping execution", context);
         return false;
     }
     
@@ -153,31 +153,31 @@ bool SafeExecute(const std::function<void()>& func, const char* context) {
         circuitBreaker.RecordSuccess();
         return true;
     } catch (const std::bad_alloc& e) {
-        PaperLogger.error("Memory allocation failed in {}: {}", context, e.what());
+        Logger.error("Memory allocation failed in {}: {}", context, e.what());
         circuitBreaker.RecordFailure();
         System::GC::Collect();
         TrickSaber::Utils::ObjectCache::ClearCache();
         return false;
     } catch (const std::runtime_error& e) {
-        PaperLogger.error("Runtime error in {}: {}", context, e.what());
+        Logger.error("Runtime error in {}: {}", context, e.what());
         circuitBreaker.RecordFailure();
         auto stateManager = TrickSaber::Core::StateManager::GetInstance();
         if (stateManager) {
-            PaperLogger.error("State: initialized={}, noteCount={}", 
+            Logger.error("State: initialized={}, noteCount={}", 
                 stateManager->IsInitialized(), stateManager->GetNoteCount());
         }
         return false;
     } catch (const std::logic_error& e) {
-        PaperLogger.error("Logic error in {}: {}", context, e.what());
+        Logger.error("Logic error in {}: {}", context, e.what());
         circuitBreaker.RecordFailure();
-        PaperLogger.error("This indicates a programming error that should be fixed");
+        Logger.error("This indicates a programming error that should be fixed");
         return false;
     } catch (const std::exception& e) {
-        PaperLogger.error("Standard exception in {}: {}", context, e.what());
+        Logger.error("Standard exception in {}: {}", context, e.what());
         circuitBreaker.RecordFailure();
         return false;
     } catch (...) {
-        PaperLogger.error("Unknown exception in {} - attempting recovery", context);
+        Logger.error("Unknown exception in {} - attempting recovery", context);
         circuitBreaker.RecordFailure();
         try {
             auto globalManager = TrickSaber::GlobalTrickManager::GetInstance();
@@ -185,7 +185,7 @@ bool SafeExecute(const std::function<void()>& func, const char* context) {
                 globalManager->EndAllTricks();
             }
         } catch (...) {
-            PaperLogger.error("Recovery attempt failed in {}", context);
+            Logger.error("Recovery attempt failed in {}", context);
         }
         return false;
     }
@@ -194,7 +194,7 @@ bool SafeExecute(const std::function<void()>& func, const char* context) {
 
 
 void PerformComprehensiveCleanup() {
-    PaperLogger.debug("Starting comprehensive TrickSaber cleanup");
+    Logger.debug("Starting comprehensive TrickSaber cleanup");
     
     SafeExecute([]() {
         auto globalManager = TrickSaber::GlobalTrickManager::GetInstance();
@@ -231,29 +231,36 @@ void PerformComprehensiveCleanup() {
         System::GC::Collect();
     }, "Memory cleanup and garbage collection");
     
-    PaperLogger.debug("TrickSaber cleanup completed");
+    Logger.debug("TrickSaber cleanup completed");
 }
+
+Configuration globalConfig(modInfo);
 
 Configuration& getConfig() {
-    static Configuration config(modInfo);
-    return config;
+    return globalConfig;
 }
 
-extern "C" void setup(CModInfo* info) noexcept {
+extern "C" __attribute__((visibility("default"))) void setup(CModInfo* info) noexcept {
     *info = modInfo.to_c();
     
-    Paper::Logger::RegisterFileContextId(PaperLogger.tag);
-    PaperLogger.info("TrickSaber setup starting...");
+    Paper::Logger::RegisterFileContextId(Logger.tag);
+    Logger.info("TrickSaber setup starting - version {}", VERSION);
+    Logger.info("ModInfo: id={}, version={}", modInfo.id, modInfo.version);
 }
 
-extern "C" void load() noexcept {
-    il2cpp_functions::Init();
+extern "C" __attribute__((visibility("default"))) void load() noexcept {
+    Logger.info("TrickSaber load() called - early initialization phase");
+    
+    // IL2CPP functions will be initialized automatically by beatsaber-hook
+    // when needed, so we don't need to call il2cpp_functions::Init() here
     
     TrickSaber::RegisterCustomTypes();
-    PaperLogger.info("Custom types registered");
+    Logger.info("Custom types registered successfully");
     
     TrickSaber::LoadConfig();
-    PaperLogger.info("Configuration loaded");
+    Logger.info("Configuration loaded successfully");
+    
+    Logger.info("TrickSaber load() completed");
 }
 
 // Additional hook implementations moved to separate files
@@ -263,19 +270,28 @@ extern void InstallSaberHooks();
 extern void InstallGameplayHooks();
 extern void InstallSceneHooks();
 
-extern "C" void late_load() noexcept {
+extern "C" __attribute__((visibility("default"))) void late_load() noexcept {
+    Logger.info("TrickSaber late_load() called - main initialization phase");
+    
     // Install hooks from separate files
+    Logger.info("Installing saber hooks...");
     InstallSaberHooks();
+    
+    Logger.info("Installing gameplay hooks...");
     InstallGameplayHooks();
+    
+    Logger.info("Installing scene hooks...");
     InstallSceneHooks();
     
+    Logger.info("Registering settings UI...");
     BSML::Register::RegisterSettingsMenu("TrickSaber", TrickSaber::UI::SettingsViewControllerDidActivate, false);
-    PaperLogger.info("TrickSaber settings UI registered successfully");
+    Logger.info("TrickSaber settings UI registered successfully");
     
     if (TrickSaber::config.showDebugOverlay) {
         TrickSaber::UI::LazyDebugOverlayCreator::CreateOverlayIfNeeded();
+        Logger.info("Debug overlay created");
     }
     
-    PaperLogger.info("TrickSaber loaded successfully with modular hooks!");
+    Logger.info("TrickSaber loaded successfully with modular hooks!");
 }
 

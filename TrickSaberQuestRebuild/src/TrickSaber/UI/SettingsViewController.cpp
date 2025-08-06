@@ -164,6 +164,6 @@ namespace TrickSaber::UI {
             }
         );
         
-        PaperLogger.info("TrickSaber minimal settings UI created");
+        Logger.info("TrickSaber minimal settings UI created");
     }
 }

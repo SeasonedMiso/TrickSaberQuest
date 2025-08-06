@@ -13,7 +13,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED 20)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # define the project
-project(tricksaber)
+project(tricksaber VERSION 0.0.1)
 
 # compile options used
 add_compile_options(-frtti -fexceptions)
@@ -65,6 +65,9 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_
 
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE ${CMAKE_DL_LIBS})
 
+# Ensure symbols are exported for Scotland2
+target_link_options(${CMAKE_PROJECT_NAME} PRIVATE "-Wl,--export-dynamic")
+
 # Enable link-time optimization for Release builds
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
     set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
@@ -80,27 +83,19 @@ if(BUILD_HOST_TESTS)
     include(cmake/host-tests.cmake)
 endif()
 
+# Create binaries directory
 add_custom_command(TARGET ${CMAKE_PROJECT_NAME} POST_BUILD
-        COMMAND ${CMAKE_STRIP} -d --strip-all
-        "lib${CMAKE_PROJECT_NAME}.so" -o "stripped_lib${CMAKE_PROJECT_NAME}.so"
-        COMMENT "Strip debug symbols done on final binary.")
-
-add_custom_command(TARGET ${CMAKE_PROJECT_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory debug
-        COMMENT "Rename the lib to debug_ since it has debug symbols"
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_SOURCE_DIR}/binaries
+        COMMENT "Creating binaries directory"
         )
 
+# Create both debug and release QMODs only if build succeeds
 add_custom_command(TARGET ${CMAKE_PROJECT_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E rename "lib${CMAKE_PROJECT_NAME}.so" "debug_lib${CMAKE_PROJECT_NAME}.so"
-        COMMENT "Rename the lib to debug_ since it has debug symbols"
-        )
-
-add_custom_command(TARGET ${CMAKE_PROJECT_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E rename "stripped_lib${CMAKE_PROJECT_NAME}.so" "lib${CMAKE_PROJECT_NAME}.so"
-        COMMENT "Rename the stripped lib to regular"
-        )
-
-add_custom_command(TARGET ${CMAKE_PROJECT_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E rename "debug_lib${CMAKE_PROJECT_NAME}.so" "debug/lib${CMAKE_PROJECT_NAME}.so"
-        COMMENT "Move the debug lib to debug folder"
+        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/mod.json ${CMAKE_CURRENT_BINARY_DIR}/
+        COMMAND ${CMAKE_STRIP} --strip-debug lib${CMAKE_PROJECT_NAME}.so -o lib${CMAKE_PROJECT_NAME}_stripped.so
+        COMMAND cd ${CMAKE_CURRENT_BINARY_DIR} && zip -q ${CMAKE_CURRENT_SOURCE_DIR}/binaries/${CMAKE_PROJECT_NAME}_debug_v${CMAKE_PROJECT_VERSION}.qmod mod.json lib${CMAKE_PROJECT_NAME}.so
+        COMMAND cd ${CMAKE_CURRENT_BINARY_DIR} && zip -q ${CMAKE_CURRENT_SOURCE_DIR}/binaries/${CMAKE_PROJECT_NAME}_v${CMAKE_PROJECT_VERSION}.qmod mod.json lib${CMAKE_PROJECT_NAME}_stripped.so
+        COMMAND ${CMAKE_COMMAND} -E echo "✅ Created debug QMOD: ${CMAKE_PROJECT_NAME}_debug_v${CMAKE_PROJECT_VERSION}.qmod"
+        COMMAND ${CMAKE_COMMAND} -E echo "✅ Created release QMOD: ${CMAKE_PROJECT_NAME}_v${CMAKE_PROJECT_VERSION}.qmod"
+        COMMENT "Creating debug and release QMODs in binaries/"
         )

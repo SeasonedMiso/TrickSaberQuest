@@ -29,7 +29,7 @@ void EnhancedSaberManager::Initialize(GlobalNamespace::SaberManager* manager) {
     InitializeSaberState(rightSaberState, manager->get_rightSaber());
     
     initialized = true;
-    PaperLogger.info("EnhancedSaberManager initialized");
+    Logger.info("EnhancedSaberManager initialized");
 }
 
 void EnhancedSaberManager::InitializeSaberState(SaberPhysicsState& state, GlobalNamespace::Saber* saber) {
@@ -108,7 +108,7 @@ void EnhancedSaberManager::HandleThrowInput(SaberPhysicsState& state, int saberI
         }
         
         state.spinActive = false;
-        PaperLogger.debug("Saber {} throw initiated", saberIndex);
+        Logger.debug("Saber {} throw initiated", saberIndex);
         
     } else if (!inputPressed && state.state == SaberInteractionState::Thrown && state.throwButtonPressed) {
         // Initiate return
@@ -117,7 +117,7 @@ void EnhancedSaberManager::HandleThrowInput(SaberPhysicsState& state, int saberI
         state.throwReleasePosition = state.saberTransform->get_position();
         state.throwReleaseRotation = state.saberTransform->get_rotation();
         
-        PaperLogger.debug("Saber {} return initiated", saberIndex);
+        Logger.debug("Saber {} return initiated", saberIndex);
     }
     
     state.throwButtonPressed = inputPressed;
@@ -128,7 +128,7 @@ void EnhancedSaberManager::HandleSpinInput(SaberPhysicsState& state, int saberIn
     
     if (inputPressed && !state.spinActive) {
         state.spinActive = true;
-        PaperLogger.debug("Saber {} spin activated", saberIndex);
+        Logger.debug("Saber {} spin activated", saberIndex);
     } else if (!inputPressed && state.spinActive) {
         state.spinActive = false;
         // Restore original position
@@ -136,7 +136,7 @@ void EnhancedSaberManager::HandleSpinInput(SaberPhysicsState& state, int saberIn
             state.saberTransform->set_localPosition(state.originalLocalPosition);
             state.saberTransform->set_localRotation(state.originalLocalRotation);
         }
-        PaperLogger.debug("Saber {} spin deactivated", saberIndex);
+        Logger.debug("Saber {} spin deactivated", saberIndex);
     }
 }
 

@@ -12,7 +12,7 @@ SaberTrickManager* TrickManager::leftSaberTrickManager = nullptr;
 SaberTrickManager* TrickManager::rightSaberTrickManager = nullptr;
 
 void TrickManager::Initialize(Saber* leftSaber, Saber* rightSaber) {
-    PaperLogger.info("Initializing TrickManager");
+    Logger.info("Initializing TrickManager");
     
     if (leftSaber) {
         auto leftGameObject = leftSaber->get_gameObject();
@@ -26,7 +26,7 @@ void TrickManager::Initialize(Saber* leftSaber, Saber* rightSaber) {
         rightSaberTrickManager->Initialize(rightSaber);
     }
     
-    PaperLogger.info("TrickManager initialized successfully");
+    Logger.info("TrickManager initialized successfully");
 }
 
 void TrickManager::Cleanup() {
@@ -46,9 +46,9 @@ bool TrickManager::CanDoTrick() {
 }
 
 void TrickManager::OnTrickStarted(const TrickAction action) {
-    PaperLogger.debug("Trick started: {}", static_cast<int>(action));
+    Logger.debug("Trick started: {}", static_cast<int>(action));
 }
 
 void TrickManager::OnTrickEnded(const TrickAction action) {
-    PaperLogger.debug("Trick ended: {}", static_cast<int>(action));
+    Logger.debug("Trick ended: {}", static_cast<int>(action));
 }

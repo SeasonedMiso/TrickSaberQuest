@@ -1,5 +1,5 @@
 {
-  "_QPVersion": "0.1.0",
+  "_QPVersion": "0.1.1",
   "name": "TrickSaber",
   "id": "tricksaber",
   "author": "SeasonedMiso",
@@ -7,5 +7,7 @@
   "packageId": "com.beatgames.beatsaber",
   "packageVersion": "1.37.0_9064817954",
   "description": "Perform saber tricks like spinning and throwing with full physics simulation and customizable controls. Port of the popular PC TrickSaber mod.",
-  "modFiles": ["libtricksaber.so"]
+  "gameplayMod": true,
+  "modFiles": ["libtricksaber.so"],
+  "lateModFiles": ["libtricksaber.so"]
 }

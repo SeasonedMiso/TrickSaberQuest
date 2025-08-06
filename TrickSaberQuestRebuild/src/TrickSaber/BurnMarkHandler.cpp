@@ -53,5 +53,5 @@ void BurnMarkHandler::ClearCache() {
     // Reset initialization flag
     initialized = false;
     
-    PaperLogger.debug("BurnMarkHandler cache cleared");
+    Logger.debug("BurnMarkHandler cache cleared");
 }

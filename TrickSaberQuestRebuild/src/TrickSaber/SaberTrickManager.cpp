@@ -88,7 +88,7 @@ void SaberTrickManager::OnDestroy() {
 
 void SaberTrickManager::Initialize(Saber* saber) {
     if (!saber) {
-        PaperLogger.error("Saber is null in SaberTrickManager::Initialize");
+        Logger.error("Saber is null in SaberTrickManager::Initialize");
         enabled = false;
         return;
     }
@@ -97,7 +97,7 @@ void SaberTrickManager::Initialize(Saber* saber) {
     this->vrController = saber->get_transform()->GetComponentInParent<VRController*>();
     
     if (!vrController) {
-        PaperLogger.error("No VRController found for saber");
+        Logger.error("No VRController found for saber");
         enabled = false;
         return;
     }
@@ -107,10 +107,10 @@ void SaberTrickManager::Initialize(Saber* saber) {
         InitializeTricks();
         ConnectInputEvents();
         
-        PaperLogger.info("SaberTrickManager initialized for {} saber", 
+        Logger.info("SaberTrickManager initialized for {} saber", 
             saber->get_saberType() == GlobalNamespace::SaberType::SaberA ? "left" : "right");
     } catch (const std::exception& e) {
-        PaperLogger.error("Failed to initialize SaberTrickManager: {}", e.what());
+        Logger.error("Failed to initialize SaberTrickManager: {}", e.what());
         enabled = false;
         Cleanup();
     }
@@ -120,7 +120,7 @@ void SaberTrickManager::InitializeComponents() {
     auto gameObject = get_gameObject();
     
     // No InputManager needed - using direct OVRInput
-    PaperLogger.debug("Using direct OVRInput - no InputManager needed");
+    Logger.debug("Using direct OVRInput - no InputManager needed");
     
     // MovementController is now static - no component needed
     
@@ -135,7 +135,7 @@ void SaberTrickManager::InitializeComponents() {
         trailHandler->Initialize(saber);
     }
     
-    PaperLogger.debug("Components initialized");
+    Logger.debug("Components initialized");
 }
 
 void SaberTrickManager::InitializeTricks() {
@@ -155,25 +155,25 @@ void SaberTrickManager::InitializeTricks() {
         tricks[TrickAction::Throw] = throwTrick;
     }
     
-    PaperLogger.debug("Tricks initialized: {}", tricks.size());
+    Logger.debug("Tricks initialized: {}", tricks.size());
 }
 
 void SaberTrickManager::ConnectInputEvents() {
     // Direct input - no callbacks needed
-    PaperLogger.debug("Using direct OVRInput - no callbacks needed");
+    Logger.debug("Using direct OVRInput - no callbacks needed");
 }
 
 void SaberTrickManager::OnTrickActivated(TrickAction action, float value) {
     PERF_TIMER_START("TrickActivation");
     
     if (!enabled || !saber || action == TrickAction::None) {
-        PaperLogger.debug("Trick activation ignored - enabled: {}, saber: {}, action: {}", 
+        Logger.debug("Trick activation ignored - enabled: {}, saber: {}, action: {}", 
             enabled, saber != nullptr, static_cast<int>(action));
         return;
     }
     
     if (!CanDoTrick(action)) {
-        PaperLogger.debug("Cannot start trick {} - conditions not met (current: {})", 
+        Logger.debug("Cannot start trick {} - conditions not met (current: {})", 
             static_cast<int>(action), static_cast<int>(currentTrick));
         
         // Record failed trick attempt
@@ -192,7 +192,7 @@ void SaberTrickManager::OnTrickActivated(TrickAction action, float value) {
             auto spinTrick = static_cast<Tricks::SpinTrick*>(it->second);
             if (spinTrick) {
                 spinTrick->inputValue = value;
-                PaperLogger.debug("Updated spin trick input: {:.2f}", value);
+                Logger.debug("Updated spin trick input: {:.2f}", value);
             }
         }
         return;
@@ -201,13 +201,13 @@ void SaberTrickManager::OnTrickActivated(TrickAction action, float value) {
     auto it = tricks.find(action);
     if (it != tricks.end() && it->second) {
         try {
-            PaperLogger.debug("Starting trick {} with value {:.2f}", static_cast<int>(action), value);
+            Logger.debug("Starting trick {} with value {:.2f}", static_cast<int>(action), value);
             if (it->second->StartTrick(value)) {
                 currentTrick = action;
                 OnTrickStarted(action);
-                PaperLogger.info("Trick {} started successfully", static_cast<int>(action));
+                Logger.info("Trick {} started successfully", static_cast<int>(action));
             } else {
-                PaperLogger.error("Trick {} failed to start", static_cast<int>(action));
+                Logger.error("Trick {} failed to start", static_cast<int>(action));
                 
                 // Record failed trick
                 auto perfMetrics = Utils::PerformanceMetrics::GetInstance();
@@ -216,7 +216,7 @@ void SaberTrickManager::OnTrickActivated(TrickAction action, float value) {
                 }
             }
         } catch (const std::exception& e) {
-            PaperLogger.error("Error starting trick {}: {}", static_cast<int>(action), e.what());
+            Logger.error("Error starting trick {}: {}", static_cast<int>(action), e.what());
             
             // Record failed trick
             auto perfMetrics = Utils::PerformanceMetrics::GetInstance();
@@ -225,7 +225,7 @@ void SaberTrickManager::OnTrickActivated(TrickAction action, float value) {
             }
         }
     } else {
-        PaperLogger.error("Trick {} not found or null", static_cast<int>(action));
+        Logger.error("Trick {} not found or null", static_cast<int>(action));
     }
     
     PERF_TIMER_END("TrickActivation");
@@ -236,7 +236,7 @@ void SaberTrickManager::OnTrickDeactivated(TrickAction action) {
     
     // Only end trick if it's currently active
     if (currentTrick != action) {
-        PaperLogger.debug("Trick deactivation ignored - not current trick (current: {}, deactivating: {})", 
+        Logger.debug("Trick deactivation ignored - not current trick (current: {}, deactivating: {})", 
             static_cast<int>(currentTrick), static_cast<int>(action));
         return;
     }
@@ -246,9 +246,9 @@ void SaberTrickManager::OnTrickDeactivated(TrickAction action) {
         try {
             OnTrickEnding(action);
             it->second->EndTrick();
-            PaperLogger.debug("Trick {} deactivated", static_cast<int>(action));
+            Logger.debug("Trick {} deactivated", static_cast<int>(action));
         } catch (const std::exception& e) {
-            PaperLogger.error("Error ending trick {}: {}", static_cast<int>(action), e.what());
+            Logger.error("Error ending trick {}: {}", static_cast<int>(action), e.what());
             it->second->EndTrickImmediately();
             OnTrickEnded(action); // Ensure state is cleaned up
         }
@@ -276,7 +276,7 @@ void SaberTrickManager::OnTrickStarted(TrickAction action) {
         onTrickStarted(action);
     }
     
-    PaperLogger.debug("Trick started: {}", static_cast<int>(action));
+    Logger.debug("Trick started: {}", static_cast<int>(action));
 }
 
 void SaberTrickManager::OnTrickEnding(TrickAction action) {
@@ -284,7 +284,7 @@ void SaberTrickManager::OnTrickEnding(TrickAction action) {
         onTrickEnding(action);
     }
     
-    PaperLogger.debug("Trick ending: {}", static_cast<int>(action));
+    Logger.debug("Trick ending: {}", static_cast<int>(action));
 }
 
 void SaberTrickManager::OnTrickEnded(TrickAction action) {
@@ -327,7 +327,7 @@ void SaberTrickManager::OnTrickEnded(TrickAction action) {
         onTrickEnded(action);
     }
     
-    PaperLogger.debug("Trick ended: {} (duration: {:.2f}s)", static_cast<int>(action), duration);
+    Logger.debug("Trick ended: {} (duration: {:.2f}s)", static_cast<int>(action), duration);
 }
 
 bool SaberTrickManager::CanDoTrick(TrickAction action) const {
@@ -387,7 +387,7 @@ bool SaberTrickManager::IsTrickInState(TrickAction action, TrickState state) {
 
 void SaberTrickManager::ValidateComponents() {
     if (!saber || !vrController) {
-        PaperLogger.error("Critical components missing - saber: {}, vrController: {}", 
+        Logger.error("Critical components missing - saber: {}, vrController: {}", 
             saber != nullptr, vrController != nullptr);
         enabled = false;
         return;

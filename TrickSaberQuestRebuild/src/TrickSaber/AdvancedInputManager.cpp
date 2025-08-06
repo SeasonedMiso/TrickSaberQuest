@@ -202,5 +202,5 @@ void AdvancedInputManager::OnInputUpdated(TrickAction action, float value, bool 
 }
 
 void AdvancedInputManager::Initialize() {
-    PaperLogger.info("AdvancedInputManager initialized");
+    Logger.info("AdvancedInputManager initialized");
 }

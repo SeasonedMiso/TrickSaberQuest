@@ -76,10 +76,10 @@ void GlobalTrickManager::OnTrickStarted(TrickAction action) {
         StartSlowmo(targetTimeScale);
         slowmoApplied = true;
         
-        PaperLogger.debug("Slowmo applied: {} -> {}", currentTimeScale, targetTimeScale);
+        Logger.debug("Slowmo applied: {} -> {}", currentTimeScale, targetTimeScale);
     }
     
-    PaperLogger.debug("Trick started: {}, clash disabled", static_cast<int>(action));
+    Logger.debug("Trick started: {}, clash disabled", static_cast<int>(action));
 }
 
 void GlobalTrickManager::OnTrickEndRequested(TrickAction action) {
@@ -92,10 +92,10 @@ void GlobalTrickManager::OnTrickEndRequested(TrickAction action) {
         EndSlowmo();
         slowmoApplied = false;
         
-        PaperLogger.debug("Slowmo ended for throw trick");
+        Logger.debug("Slowmo ended for throw trick");
     }
     
-    PaperLogger.debug("Trick end requested: {}", static_cast<int>(action));
+    Logger.debug("Trick end requested: {}", static_cast<int>(action));
 }
 
 void GlobalTrickManager::OnTrickEnded(TrickAction action) {
@@ -114,7 +114,7 @@ void GlobalTrickManager::OnTrickEnded(TrickAction action) {
             }
         }
         
-        PaperLogger.debug("All tricks ended, clash enabled, cleanup completed");
+        Logger.debug("All tricks ended, clash enabled, cleanup completed");
     }
 }
 
@@ -156,7 +156,7 @@ bool GlobalTrickManager::CanStartTrick(TrickAction action, int saberType) {
         
         int managerSaberType = static_cast<int>(manager->saber->get_saberType());
         if (managerSaberType == saberType && manager->IsDoingTrick()) {
-            PaperLogger.debug("Cannot start trick - saber {} already doing trick", saberType);
+            Logger.debug("Cannot start trick - saber {} already doing trick", saberType);
             return false;
         }
     }
@@ -183,7 +183,7 @@ void GlobalTrickManager::EndAllTricks() {
     saberClashEnabled = true;
     timeSinceLastNote = 0.0f;
     
-    PaperLogger.debug("All tricks force ended with complete cleanup");
+    Logger.debug("All tricks force ended with complete cleanup");
 }
 
 void GlobalTrickManager::UpdateNoteTimer(float deltaTime) {
@@ -209,7 +209,7 @@ void GlobalTrickManager::RefreshManagerCache() {
     }
     
     lastCacheUpdate = std::chrono::steady_clock::now();
-    PaperLogger.debug("Manager cache refreshed: {} managers", cachedManagers.size());
+    Logger.debug("Manager cache refreshed: {} managers", cachedManagers.size());
 }
 
 void GlobalTrickManager::ValidateManagerCache() {
@@ -262,9 +262,9 @@ void GlobalTrickManager::SetTimeScale(float timeScale) {
     auto audioSource = audioController->GetComponent<UnityEngine::AudioSource*>();
     if (audioSource) {
         audioSource->set_pitch(timeScale);
-        PaperLogger.debug("Audio pitch set to: {:.2f}", timeScale);
+        Logger.debug("Audio pitch set to: {:.2f}", timeScale);
     } else {
-        PaperLogger.debug("No audio source found for slowmo effect");
+        Logger.debug("No audio source found for slowmo effect");
     }
 }
 

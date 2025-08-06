@@ -33,7 +33,7 @@ TrickSaberManager* TrickSaberManager::GetInstance() {
 
 void TrickSaberManager::Initialize(SaberManager* saberManager, AudioTimeSyncController* audioController) {
     if (!saberManager || !audioController) {
-        PaperLogger.error("SaberManager or AudioTimeSyncController is null");
+        Logger.error("SaberManager or AudioTimeSyncController is null");
         return;
     }
     
@@ -46,7 +46,7 @@ void TrickSaberManager::Initialize(SaberManager* saberManager, AudioTimeSyncCont
     
     manager->InitializeSabers(saberManager->get_leftSaber(), saberManager->get_rightSaber());
     
-    PaperLogger.info("TrickSaberManager initialized successfully");
+    Logger.info("TrickSaberManager initialized successfully");
 }
 
 void TrickSaberManager::Cleanup() {
@@ -60,13 +60,13 @@ void TrickSaberManager::InitializeSabers(Saber* leftSaber, Saber* rightSaber) {
     if (leftSaber) {
         auto leftManager = leftSaber->get_gameObject()->AddComponent<TrickSaber::SaberTrickManager*>();
         leftManager->Initialize(leftSaber);
-        PaperLogger.debug("Left saber trick manager initialized");
+        Logger.debug("Left saber trick manager initialized");
     }
     
     if (rightSaber) {
         auto rightManager = rightSaber->get_gameObject()->AddComponent<TrickSaber::SaberTrickManager*>();
         rightManager->Initialize(rightSaber);
-        PaperLogger.debug("Right saber trick manager initialized");
+        Logger.debug("Right saber trick manager initialized");
     }
 }
 
@@ -77,7 +77,7 @@ void TrickSaberManager::ApplySlowmo(float amount) {
     SetTimeScale(targetScale);
     slowmoActive = true;
     
-    PaperLogger.debug("Slowmo applied: {:.2f}", targetScale);
+    Logger.debug("Slowmo applied: {:.2f}", targetScale);
 }
 
 void TrickSaberManager::RemoveSlowmo() {
@@ -86,7 +86,7 @@ void TrickSaberManager::RemoveSlowmo() {
     SetTimeScale(originalTimeScale);
     slowmoActive = false;
     
-    PaperLogger.debug("Slowmo removed, restored to: {:.2f}", originalTimeScale);
+    Logger.debug("Slowmo removed, restored to: {:.2f}", originalTimeScale);
 }
 
 void TrickSaberManager::SetTimeScale(float scale) {

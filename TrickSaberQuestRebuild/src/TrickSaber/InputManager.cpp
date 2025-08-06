@@ -61,15 +61,15 @@ void InputManager::Update() {
             }
         }
     } catch (const std::exception& e) {
-        PaperLogger.error("Error in InputManager::Update: {}", e.what());
+        Logger.error("Error in InputManager::Update: {}", e.what());
     } catch (...) {
-        PaperLogger.error("Unknown error in InputManager::Update");
+        Logger.error("Unknown error in InputManager::Update");
     }
 }
 
 void InputManager::Initialize(GlobalNamespace::VRController* vrController, GlobalNamespace::SaberType saberType) {
     if (!vrController) {
-        PaperLogger.error("VRController is null in InputManager::Initialize");
+        Logger.error("VRController is null in InputManager::Initialize");
         return;
     }
     
@@ -80,7 +80,7 @@ void InputManager::Initialize(GlobalNamespace::VRController* vrController, Globa
     ovrController = (saberType == GlobalNamespace::SaberType::SaberA) ? 
         OVRInput::Controller::LTouch : OVRInput::Controller::RTouch;
     
-    PaperLogger.info("InputManager initialized for {} saber", 
+    Logger.info("InputManager initialized for {} saber", 
         saberType == GlobalNamespace::SaberType::SaberA ? "left" : "right");
 }
 
@@ -132,7 +132,7 @@ void InputManager::CheckInput(std::function<bool(float&)> getValue, InputState& 
         }
         
     } catch (...) {
-        PaperLogger.error("Error checking input for action {}", static_cast<int>(action));
+        Logger.error("Error checking input for action {}", static_cast<int>(action));
         state.pressed = false; // Reset to safe state
         state.lastChangeTime = std::chrono::steady_clock::now();
     }
@@ -156,7 +156,7 @@ bool InputManager::GetTriggerValue(float& value) {
         
         return value >= TrickSaber::Configuration::GetTriggerThreshold();
     } catch (...) {
-        PaperLogger.error("Error reading trigger value");
+        Logger.error("Error reading trigger value");
         value = 0.0f;
         return false;
     }
@@ -180,7 +180,7 @@ bool InputManager::GetGripValue(float& value) {
         
         return value >= TrickSaber::Configuration::GetTriggerThreshold(); // Using trigger threshold for grip
     } catch (...) {
-        PaperLogger.error("Error reading grip value");
+        Logger.error("Error reading grip value");
         value = 0.0f;
         return false;
     }
@@ -252,7 +252,7 @@ bool InputManager::GetThumbstickValue(float& value) {
     return std::abs(value) >= TrickSaber::Configuration::GetThumbstickThreshold();
     
     } catch (...) {
-        PaperLogger.error("Error reading thumbstick value");
+        Logger.error("Error reading thumbstick value");
         value = 0.0f;
         return false;
     }
@@ -290,7 +290,7 @@ bool InputManager::IsControllerDetected() {
 
 void InputManager::HandleControllerConnectionChange(bool connected) {
     if (connected && !wasConnected) {
-        PaperLogger.info("Controller {} connected", 
+        Logger.info("Controller {} connected", 
             saberType == 0 ? "left" : "right");
         
         // Reset input states on reconnection
@@ -310,7 +310,7 @@ void InputManager::HandleControllerConnectionChange(bool connected) {
         activeCombination = {};
         
     } else if (!connected && wasConnected) {
-        PaperLogger.warn("Controller {} disconnected", 
+        Logger.warn("Controller {} disconnected", 
             saberType == 0 ? "left" : "right");
         
         // End any active tricks when controller disconnects
@@ -411,7 +411,7 @@ void InputManager::CheckMultiInputCombinations() {
                 onTrickDeactivated(activeCombination.primaryAction);
             }
             activeCombination.active = false;
-            PaperLogger.debug("Multi-input combination ended: {} + {}", 
+            Logger.debug("Multi-input combination ended: {} + {}", 
                 static_cast<int>(activeCombination.primaryAction), 
                 static_cast<int>(activeCombination.secondaryAction));
         }
@@ -455,7 +455,7 @@ void InputManager::CheckMultiInputCombinations() {
                     onTrickActivated(combo.action1, combinedValue);
                 }
                 
-                PaperLogger.debug("Multi-input combination started: {} ({})", combo.name, timeDiff);
+                Logger.debug("Multi-input combination started: {} ({})", combo.name, timeDiff);
                 break;
             }
         }
@@ -497,7 +497,7 @@ bool InputManager::GetButtonOneValue(float& value) {
         
         return pressed;
     } catch (...) {
-        PaperLogger.error("Error reading button one value");
+        Logger.error("Error reading button one value");
         value = 0.0f;
         return false;
     }
@@ -520,7 +520,7 @@ bool InputManager::GetButtonTwoValue(float& value) {
         
         return pressed;
     } catch (...) {
-        PaperLogger.error("Error reading button two value");
+        Logger.error("Error reading button two value");
         value = 0.0f;
         return false;
     }

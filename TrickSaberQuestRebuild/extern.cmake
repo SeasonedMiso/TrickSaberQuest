@@ -5,6 +5,7 @@ target_include_directories(${COMPILE_ID} SYSTEM PRIVATE ${EXTERN_DIR}/includes/l
 
 # includes and compile options added by other libraries
 target_compile_options(${COMPILE_ID} PRIVATE -Wno-invalid-offsetof)
+target_include_directories(${COMPILE_ID} SYSTEM PRIVATE ${EXTERN_DIR}/includes/paper2_scotland2/shared/utfcpp/source)
 target_include_directories(${COMPILE_ID} PRIVATE ${EXTERN_DIR}/includes/bs-cordl/include)
 target_compile_options(${COMPILE_ID} PRIVATE -DNEED_UNSAFE_CSHARP)
 target_compile_options(${COMPILE_ID} PRIVATE -fdeclspec)

@@ -9,7 +9,7 @@ using namespace TrickSaber::Utils;
 
 LazyInitializer<PerformanceMetrics> PerformanceMetrics::lazyInstance(
     []() -> std::unique_ptr<PerformanceMetrics> {
-        PaperLogger.debug("Initializing PerformanceMetrics on first access");
+        Logger.debug("Initializing PerformanceMetrics on first access");
         auto instance = std::make_unique<PerformanceMetrics>();
         instance->startTime = std::chrono::high_resolution_clock::now();
         instance->lastFrameTime = instance->startTime;
@@ -152,44 +152,44 @@ void PerformanceMetrics::LogPerformanceReport() {
     auto currentTime = std::chrono::high_resolution_clock::now();
     auto uptime = std::chrono::duration_cast<std::chrono::seconds>(currentTime - startTime);
     
-    PaperLogger.info("=== TrickSaber Performance Report (Uptime: {}s) ===", uptime.count());
+    Logger.info("=== TrickSaber Performance Report (Uptime: {}s) ===", uptime.count());
     
     // Frame metrics
-    PaperLogger.info("Frame Performance:");
-    PaperLogger.info("  Current FPS: {:.1f}", frameMetrics.fps);
-    PaperLogger.info("  Average FPS: {:.1f}", GetAverageFPS());
-    PaperLogger.info("  Frame Time: {:.2f}ms", frameMetrics.frameTime);
-    PaperLogger.info("  Dropped Frames: {}", frameMetrics.droppedFrames);
+    Logger.info("Frame Performance:");
+    Logger.info("  Current FPS: {:.1f}", frameMetrics.fps);
+    Logger.info("  Average FPS: {:.1f}", GetAverageFPS());
+    Logger.info("  Frame Time: {:.2f}ms", frameMetrics.frameTime);
+    Logger.info("  Dropped Frames: {}", frameMetrics.droppedFrames);
     
     // Memory metrics
-    PaperLogger.info("Memory Usage:");
-    PaperLogger.info("  Current: {:.2f}MB", memoryMetrics.usedMemory / (1024.0f * 1024.0f));
-    PaperLogger.info("  Peak: {:.2f}MB", memoryMetrics.peakMemory / (1024.0f * 1024.0f));
-    PaperLogger.info("  Total System: {:.0f}MB", memoryMetrics.totalMemory / (1024.0f * 1024.0f));
-    PaperLogger.info("  Allocations: {} | Deallocations: {}", memoryMetrics.allocations, memoryMetrics.deallocations);
+    Logger.info("Memory Usage:");
+    Logger.info("  Current: {:.2f}MB", memoryMetrics.usedMemory / (1024.0f * 1024.0f));
+    Logger.info("  Peak: {:.2f}MB", memoryMetrics.peakMemory / (1024.0f * 1024.0f));
+    Logger.info("  Total System: {:.0f}MB", memoryMetrics.totalMemory / (1024.0f * 1024.0f));
+    Logger.info("  Allocations: {} | Deallocations: {}", memoryMetrics.allocations, memoryMetrics.deallocations);
     
     // Trick metrics
-    PaperLogger.info("Trick Performance:");
-    PaperLogger.info("  Throws: {} | Spins: {} | Failed: {}", 
+    Logger.info("Trick Performance:");
+    Logger.info("  Throws: {} | Spins: {} | Failed: {}", 
                      trickMetrics.throwsPerformed, trickMetrics.spinsPerformed, trickMetrics.failedTricks);
-    PaperLogger.info("  Avg Throw Velocity: {:.2f}m/s", trickMetrics.avgThrowVelocity);
-    PaperLogger.info("  Avg Return Time: {:.2f}s", trickMetrics.avgReturnTime);
+    Logger.info("  Avg Throw Velocity: {:.2f}m/s", trickMetrics.avgThrowVelocity);
+    Logger.info("  Avg Return Time: {:.2f}s", trickMetrics.avgReturnTime);
     
     // Quest-specific metrics
-    PaperLogger.info("Quest Hardware:");
-    PaperLogger.info("  Battery Usage: {:.1f}%", GetBatteryUsage());
-    PaperLogger.info("  Thermal State: {:.1f}°C", GetThermalState());
-    PaperLogger.info("  Performance Throttled: {}", IsPerformanceThrottled() ? "Yes" : "No");
+    Logger.info("Quest Hardware:");
+    Logger.info("  Battery Usage: {:.1f}%", GetBatteryUsage());
+    Logger.info("  Thermal State: {:.1f}°C", GetThermalState());
+    Logger.info("  Performance Throttled: {}", IsPerformanceThrottled() ? "Yes" : "No");
     
     // Timer averages
     if (!averageTimes.empty()) {
-        PaperLogger.info("Average Timings:");
+        Logger.info("Average Timings:");
         for (const auto& [name, time] : averageTimes) {
-            PaperLogger.info("  {}: {:.3f}ms", name, time);
+            Logger.info("  {}: {:.3f}ms", name, time);
         }
     }
     
-    PaperLogger.info("=== End Performance Report ===");
+    Logger.info("=== End Performance Report ===");
 }
 
 void PerformanceMetrics::SetReportInterval(float seconds) {
@@ -220,13 +220,13 @@ bool PerformanceMetrics::IsPerformanceThrottled() const {
 
 // LazyPerformanceSetup implementation
 LazyComponentInitializer LazyPerformanceSetup::setupInitializer([]() {
-    PaperLogger.debug("Setting up PerformanceMetrics with default configuration");
+    Logger.debug("Setting up PerformanceMetrics with default configuration");
     
     auto* metrics = PerformanceMetrics::GetInstance();
     metrics->SetEnabled(true);
     metrics->SetReportInterval(5.0f); // 5 second intervals
     
-    PaperLogger.debug("PerformanceMetrics setup completed");
+    Logger.debug("PerformanceMetrics setup completed");
 });
 
 void LazyPerformanceSetup::Setup() {

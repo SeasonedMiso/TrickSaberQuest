@@ -32,9 +32,9 @@ void HapticFeedbackHelper::TriggerHaptic(GlobalNamespace::SaberType saberType, f
     try {
         hapticManager->PlayHapticFeedback(node, nullptr);
     } catch (const std::runtime_error& e) {
-        PaperLogger.debug("Runtime error playing haptic feedback: {}", e.what());
+        Logger.debug("Runtime error playing haptic feedback: {}", e.what());
     } catch (const std::exception& e) {
-        PaperLogger.debug("Exception playing haptic feedback: {}", e.what());
+        Logger.debug("Exception playing haptic feedback: {}", e.what());
     } catch (...) {
         // Silently fail for unknown exceptions
     }

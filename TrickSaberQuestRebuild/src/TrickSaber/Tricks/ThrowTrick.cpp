@@ -23,7 +23,7 @@ bool ThrowTrick::StartTrick(float value) {
     if (!Trick::StartTrick(value)) return false;
     
     if (!saberTrickModel || !saberTrickModel->saber) {
-        PaperLogger.error("ThrowTrick: Missing required components");
+        Logger.error("ThrowTrick: Missing required components");
         return false;
     }
     
@@ -63,7 +63,7 @@ bool ThrowTrick::StartTrick(float value) {
     TrickSaber::Utils::HapticFeedbackHelper::TriggerHaptic(saberTrickModel->saber->get_saberType(), 
         TrickSaber::Utils::HapticFeedbackHelper::HapticType::TrickStart);
     
-    PaperLogger.debug("ThrowTrick started with velocity: ({:.2f}, {:.2f}, {:.2f})", 
+    Logger.debug("ThrowTrick started with velocity: ({:.2f}, {:.2f}, {:.2f})", 
         throwVelocity.x, throwVelocity.y, throwVelocity.z);
     return true;
 }
@@ -76,7 +76,7 @@ void ThrowTrick::ApplyThrowForces() {
         // Detach from parent for free movement
         saberTransform->SetParent(nullptr, true);
         
-        PaperLogger.debug("Saber detached for throw: velocity=({:.2f},{:.2f},{:.2f})", 
+        Logger.debug("Saber detached for throw: velocity=({:.2f},{:.2f},{:.2f})", 
             throwVelocity.x, throwVelocity.y, throwVelocity.z);
     }
 }
@@ -85,7 +85,7 @@ void ThrowTrick::CalculateThrowForces() {
     // Use pooled calculation for complex throw physics
     auto calculation = TrickSaber::Utils::PooledTrickCalculation();
     if (!calculation.IsValid()) {
-        PaperLogger.error("Failed to get pooled calculation for throw forces");
+        Logger.error("Failed to get pooled calculation for throw forces");
         return;
     }
     
@@ -139,7 +139,7 @@ void ThrowTrick::CalculateThrowForces() {
     
     currentVelocity = throwVelocity;
     
-    PaperLogger.debug("Throw calculated (velocity-dependent={}): velocity=({:.2f},{:.2f},{:.2f}), rotSpeed={:.1f}", 
+    Logger.debug("Throw calculated (velocity-dependent={}): velocity=({:.2f},{:.2f},{:.2f}), rotSpeed={:.1f}", 
         TrickSaber::Configuration::IsSpeedVelocityDependent(),
         throwVelocity.x, throwVelocity.y, throwVelocity.z, saberRotSpeed);
 }
@@ -287,19 +287,19 @@ void ThrowTrick::EndTrick() {
         
         // Physics disabled during return
         
-        PaperLogger.debug("ThrowTrick: Starting return sequence");
+        Logger.debug("ThrowTrick: Starting return sequence");
         return; // Don't end the trick yet, let Update() handle the return
     }
     
     // Reset velocity
     currentVelocity = UnityEngine::Vector3::get_zero();
     
-    PaperLogger.debug("ThrowTrick ended");
+    Logger.debug("ThrowTrick ended");
 }
 
 void ThrowTrick::EndTrickImmediately() {
     ThrowEnd();
-    PaperLogger.debug("ThrowTrick ended immediately");
+    Logger.debug("ThrowTrick ended immediately");
 }
 
 void ThrowTrick::ThrowEnd() {

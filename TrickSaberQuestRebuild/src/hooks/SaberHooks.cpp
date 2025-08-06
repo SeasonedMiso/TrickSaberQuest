@@ -26,7 +26,7 @@ MAKE_HOOK_MATCH(SaberModelController_Init, &GlobalNamespace::SaberModelControlle
         if (saberTransform) {
             auto stateManager = TrickSaber::Core::StateManager::GetInstance();
             stateManager->AddSaberTransform(saber, saberTransform);
-            PaperLogger.debug("Captured transform for {} saber", 
+            Logger.debug("Captured transform for {} saber", 
                 saber->get_saberType() == GlobalNamespace::SaberType::SaberA ? "left" : "right");
         }
     }
@@ -45,7 +45,7 @@ MAKE_HOOK_MATCH(SaberManager_Start, &GlobalNamespace::SaberManager::Start, void,
     SafeExecute([self, stateManager]() {
         auto audioController = TrickSaber::Utils::ObjectCache::GetAudioController();
         if (!audioController) {
-            PaperLogger.error("AudioTimeSyncController not found - TrickSaber initialization failed");
+            Logger.error("AudioTimeSyncController not found - TrickSaber initialization failed");
             return;
         }
         
@@ -58,7 +58,7 @@ MAKE_HOOK_MATCH(SaberManager_Start, &GlobalNamespace::SaberManager::Start, void,
         TrickSaber::Utils::MemoryManager::Initialize();
         
         stateManager->SetInitialized(true);
-        PaperLogger.info("TrickSaber core initialized - expensive operations will be lazy loaded");
+        Logger.info("TrickSaber core initialized - expensive operations will be lazy loaded");
     }, "SaberManager initialization");
 }
 
@@ -76,8 +76,8 @@ MAKE_HOOK_MATCH(SaberClashChecker_AreSabersClashing, &GlobalNamespace::SaberClas
 }
 
 void InstallSaberHooks() {
-    INSTALL_HOOK(PaperLogger, SaberModelController_Init);
-    INSTALL_HOOK(PaperLogger, SaberManager_Start);
-    INSTALL_HOOK(PaperLogger, SaberClashChecker_AreSabersClashing);
-    PaperLogger.info("Saber hooks installed");
+    INSTALL_HOOK(Logger, SaberModelController_Init);
+    INSTALL_HOOK(Logger, SaberManager_Start);
+    INSTALL_HOOK(Logger, SaberClashChecker_AreSabersClashing);
+    Logger.info("Saber hooks installed");
 }

@@ -9,7 +9,7 @@ AdvancedInputSystem* AdvancedInputSystem::instance = nullptr;
 
 void AdvancedInputSystem::Awake() {
     instance = this;
-    PaperLogger.info("AdvancedInputSystem initialized");
+    Logger.info("AdvancedInputSystem initialized");
 }
 
 void AdvancedInputSystem::Update() {

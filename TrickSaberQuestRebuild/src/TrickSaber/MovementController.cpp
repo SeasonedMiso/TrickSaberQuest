@@ -41,7 +41,7 @@ void MovementController::Initialize() {
     rightAngularVelocityBuffer.resize(bufferSize, UnityEngine::Vector3::get_zero());
     
     initialized = true;
-    PaperLogger.debug("MovementController initialized with buffer size: {}", bufferSize);
+    Logger.debug("MovementController initialized with buffer size: {}", bufferSize);
 }
 
 void MovementController::UpdateVelocities(UnityEngine::Transform* leftHand, UnityEngine::Transform* rightHand, float deltaTime) {
@@ -198,5 +198,5 @@ void MovementController::ClearBuffers() {
     rightBufferIndex = 0;
     initialized = false;
     
-    PaperLogger.debug("MovementController buffers cleared");
+    Logger.debug("MovementController buffers cleared");
 }
