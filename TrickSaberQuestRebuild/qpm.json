@@ -1,13 +1,13 @@
 {
   "$schema": "https://raw.githubusercontent.com/QuestPackageManager/QPM.Package/refs/heads/main/qpm.schema.json",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "sharedDir": "shared",
   "dependenciesDir": "extern",
   "info": {
     "name": "TrickSaber",
     "id": "tricksaber",
-    "version": "0.1.0",
-    "url": "https://github.com/ToniMacaroni/TrickSaber",
+    "version": "0.0.1",
+    "url": "https://github.com/SeasonedMiso/TrickSaberQuest",
     "additionalData": {
       "overrideSoName": "libtricksaber.so",
       "cmake": true
