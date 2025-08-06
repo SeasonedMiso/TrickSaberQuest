@@ -10,6 +10,11 @@
   "description": "Perform saber tricks like spinning and throwing with full physics simulation and customizable controls. Port of the popular PC TrickSaber mod.",
   "dependencies": [
     {
+      "id": "beatsaber-hook",
+      "version": "^5.1.9",
+      "downloadIfMissing": "https://github.com/QuestPackageManager/bs-cordl/releases/download/v3700.0.0/beatsaber-hook.qmod"
+    },
+    {
       "id": "custom-types",
       "version": "^0.17.10",
       "downloadIfMissing": "https://github.com/QuestPackageManager/bs-cordl/releases/download/v3700.0.0/custom-types.qmod"
@@ -18,9 +23,20 @@
       "id": "bsml",
       "version": "^0.4.43",
       "downloadIfMissing": "https://github.com/QuestPackageManager/bs-cordl/releases/download/v3700.0.0/bsml.qmod"
+    },
+    {
+      "id": "paper",
+      "version": "^3.6.3",
+      "downloadIfMissing": "https://github.com/QuestPackageManager/bs-cordl/releases/download/v3700.0.0/paper.qmod"
     }
   ],
   "modFiles": ["libtricksaber.so"],
-  "libraryFiles": [],
+  "libraryFiles": [
+    "libbeatsaber-hook_5_1_9.so",
+    "libcustom-types.so",
+    "libbsml.so",
+    "libpaperlog.so",
+    "libsl2.so"
+  ],
   "fileCopies": []
 }

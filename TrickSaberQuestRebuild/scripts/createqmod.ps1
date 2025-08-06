@@ -74,5 +74,16 @@ foreach ($lib in $modJson.libraryFiles) {
 $zip = $qmodName + ".zip"
 $qmod = $qmodName + ".qmod"
 
-Compress-Archive -Path $filelist -DestinationPath $zip -Update
+# Remove existing qmod if it exists
+if (Test-Path $qmod) {
+    Remove-Item $qmod -Force
+}
+
+Compress-Archive -Path $filelist -DestinationPath $zip -Force
 Move-Item $zip $qmod -Force
+
+Write-Output "Created: $qmod"
+Write-Output "Contents:"
+foreach ($file in $filelist) {
+    Write-Output "  - $(Split-Path $file -Leaf)"
+}
