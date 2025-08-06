@@ -71,8 +71,13 @@ foreach ($lib in $modJson.libraryFiles) {
     $filelist += $path
 }
 
-$zip = $qmodName + ".zip"
-$qmod = $qmodName + ".qmod"
+$zip = "binaries/" + $qmodName + ".zip"
+$qmod = "binaries/" + $qmodName + ".qmod"
+
+# Ensure binaries directory exists
+if (-not (Test-Path "binaries")) {
+    New-Item -ItemType Directory -Path "binaries" | Out-Null
+}
 
 # Remove existing qmod if it exists
 if (Test-Path $qmod) {

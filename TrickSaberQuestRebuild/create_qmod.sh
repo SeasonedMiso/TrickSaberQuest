@@ -47,7 +47,7 @@ for lib in libbeatsaber-hook_5_1_9.so libcustom-types.so libbsml.so libpaperlog.
 done
 
 # Create the .qmod file (which is just a zip)
-QMOD_FILE="${MOD_NAME}.qmod"
+QMOD_FILE="binaries/${MOD_NAME}.qmod"
 rm -f "$QMOD_FILE"
 cd "$TEMP_DIR"
 zip -r "../$QMOD_FILE" *

@@ -46,7 +46,7 @@
       "./extern/libs"
     ],
     "qmodIncludeFiles": [],
-    "qmodOutput": "./TrickSaber.qmod"
+    "qmodOutput": "./binaries/TrickSaber.qmod"
   },
   "dependencies": [
     {
