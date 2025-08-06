@@ -1,2 +1,0 @@
-/opt/homebrew/Caskroom/android-ndk/28c/AndroidNDK13676358.app/Contents/NDK/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-ar qc ../../../lib/libgmock.a "CMakeFiles/gmock.dir/src/gmock-all.cc.o"
-/opt/homebrew/Caskroom/android-ndk/28c/AndroidNDK13676358.app/Contents/NDK/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-ranlib ../../../lib/libgmock.a
