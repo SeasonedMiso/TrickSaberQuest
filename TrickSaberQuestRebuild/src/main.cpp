@@ -251,12 +251,7 @@ extern "C" __attribute__((visibility("default"))) void setup(CModInfo* info) noe
 extern "C" __attribute__((visibility("default"))) void load() noexcept {
     Logger.info("TrickSaber load() called - early initialization phase");
     
-    // IL2CPP functions will be initialized automatically by beatsaber-hook
-    // when needed, so we don't need to call il2cpp_functions::Init() here
-    
-    TrickSaber::RegisterCustomTypes();
-    Logger.info("Custom types registered successfully");
-    
+    // Only do basic initialization that doesn't require IL2CPP
     TrickSaber::LoadConfig();
     Logger.info("Configuration loaded successfully");
     
@@ -272,6 +267,10 @@ extern void InstallSceneHooks();
 
 extern "C" __attribute__((visibility("default"))) void late_load() noexcept {
     Logger.info("TrickSaber late_load() called - main initialization phase");
+    
+    // Now IL2CPP is ready, register custom types
+    TrickSaber::RegisterCustomTypes();
+    Logger.info("Custom types registered successfully");
     
     // Install hooks from separate files
     Logger.info("Installing saber hooks...");

@@ -8,6 +8,17 @@
   "packageVersion": "1.37.0_9064817954",
   "description": "Perform saber tricks like spinning and throwing with full physics simulation and customizable controls. Port of the popular PC TrickSaber mod.",
   "gameplayMod": true,
-  "modFiles": ["libtricksaber.so"],
-  "lateModFiles": ["libtricksaber.so"]
+  "dependencies": [
+    {
+      "id": "custom-types",
+      "version": "^0.17.10",
+      "downloadIfMissing": "https://github.com/QuestPackageManager/Il2CppQuestTypePatching/releases/latest"
+    },
+    {
+      "id": "bsml",
+      "version": "^0.4.43",
+      "downloadIfMissing": "https://github.com/RedBrumbler/Quest-BSML/releases/latest"
+    }
+  ],
+  "modFiles": ["libtricksaber.so"]
 }

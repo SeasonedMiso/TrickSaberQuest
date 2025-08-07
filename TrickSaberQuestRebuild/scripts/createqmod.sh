@@ -102,24 +102,52 @@ RELEASE_QMOD="binaries/${QMOD_NAME}_v${VERSION}.qmod"
 rm -f "$DEBUG_QMOD" "$RELEASE_QMOD"
 
 # Create debug version (unstripped)
-zip -q "$DEBUG_QMOD" "${FILELIST[@]}"
+# Copy files to temp directory with correct structure
+TEMP_DIR="temp_qmod"
+rm -rf "$TEMP_DIR"
+mkdir -p "$TEMP_DIR"
 
-# Create stripped version for release
-STRIPPED_FILES=()
+# Copy mod.json
+cp "$MOD_JSON" "$TEMP_DIR/"
+
+# Copy .so files without build/ prefix
+for file in "${FILELIST[@]}"; do
+    if [[ "$file" == *build/*.so ]]; then
+        cp "$file" "$TEMP_DIR/$(basename "$file")"
+    elif [[ "$file" != "$MOD_JSON" ]]; then
+        cp "$file" "$TEMP_DIR/"
+    fi
+done
+
+# Create QMOD from temp directory
+(cd "$TEMP_DIR" && zip -q "../$DEBUG_QMOD" *)
+rm -rf "$TEMP_DIR"
+
+# Create release version with stripped files
+TEMP_DIR_RELEASE="temp_qmod_release"
+rm -rf "$TEMP_DIR_RELEASE"
+mkdir -p "$TEMP_DIR_RELEASE"
+
+# Copy mod.json
+cp "$MOD_JSON" "$TEMP_DIR_RELEASE/"
+
+# Copy .so files (prefer stripped versions)
 for file in "${FILELIST[@]}"; do
     if [[ "$file" == *build/*.so ]]; then
         stripped_file="${file%.so}_stripped.so"
         if [ -f "$stripped_file" ]; then
-            STRIPPED_FILES+=("$stripped_file")
+            cp "$stripped_file" "$TEMP_DIR_RELEASE/$(basename "$file")"
         else
-            STRIPPED_FILES+=("$file")
+            cp "$file" "$TEMP_DIR_RELEASE/$(basename "$file")"
         fi
-    else
-        STRIPPED_FILES+=("$file")
+    elif [[ "$file" != "$MOD_JSON" ]]; then
+        cp "$file" "$TEMP_DIR_RELEASE/"
     fi
 done
 
-zip -q "$RELEASE_QMOD" "${STRIPPED_FILES[@]}"
+# Create QMOD from temp directory
+(cd "$TEMP_DIR_RELEASE" && zip -q "../$RELEASE_QMOD" *)
+rm -rf "$TEMP_DIR_RELEASE"
 
 echo "Created debug version: $DEBUG_QMOD"
 echo "Created release version: $RELEASE_QMOD"
